@@ -10,6 +10,9 @@ httpx
 # Validação de dados
 pydantic>=2.0
 
+# ORM / DB (dependência do agno.db.sqlite)
+sqlalchemy
+
 # Variáveis de ambiente
 python-dotenv
 
