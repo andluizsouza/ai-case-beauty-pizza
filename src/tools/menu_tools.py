@@ -190,3 +190,118 @@ def get_pizza_price(
         raise
     finally:
         conn.close()
+
+
+def get_menu_report(db_path: str | None = None) -> str:
+    """Gera relatório descritivo completo do cardápio a partir do banco.
+
+    Consulta todas as tabelas (pizzas, tamanhos, bordas, precos) e produz
+    um texto estruturado com sabores disponíveis, descrições, ingredientes,
+    combinações válidas de tamanho/borda e faixas de preço. Nenhuma regra
+    é hardcoded — tudo é derivado dos dados existentes no banco.
+
+    Args:
+        db_path: Caminho opcional do banco (para testes).
+
+    Returns:
+        String formatada com o relatório completo do cardápio.
+    """
+    logger.info("get_menu_report chamado")
+
+    conn = _get_readonly_connection(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        # Sabores com descrição e ingredientes
+        pizzas = conn.execute(
+            "SELECT sabor, descricao, ingredientes FROM pizzas ORDER BY id"
+        ).fetchall()
+
+        # Todas as combinações válidas de tamanho/borda com contagem de sabores
+        combos = conn.execute(
+            """
+            SELECT t.tamanho, b.tipo AS borda, COUNT(DISTINCT pr.pizza_id) AS qtd_sabores
+            FROM precos pr
+            JOIN tamanhos t ON t.id = pr.tamanho_id
+            JOIN bordas b ON b.id = pr.borda_id
+            GROUP BY t.tamanho, b.tipo
+            ORDER BY t.id, b.id
+            """
+        ).fetchall()
+
+        # Preços por sabor (min/max) para faixa de preço
+        price_ranges = conn.execute(
+            """
+            SELECT p.sabor, t.tamanho, b.tipo AS borda, pr.preco
+            FROM precos pr
+            JOIN pizzas p ON p.id = pr.pizza_id
+            JOIN tamanhos t ON t.id = pr.tamanho_id
+            JOIN bordas b ON b.id = pr.borda_id
+            ORDER BY p.sabor, t.id, b.id
+            """
+        ).fetchall()
+
+        # Bordas disponíveis por sabor
+        borders_by_flavor = conn.execute(
+            """
+            SELECT DISTINCT p.sabor, b.tipo AS borda
+            FROM precos pr
+            JOIN pizzas p ON p.id = pr.pizza_id
+            JOIN bordas b ON b.id = pr.borda_id
+            ORDER BY p.sabor, b.id
+            """
+        ).fetchall()
+
+        # --- Montar relatório ---
+        lines: list[str] = []
+        lines.append("=== RELATÓRIO COMPLETO DO CARDÁPIO ===\n")
+
+        # Sabores
+        lines.append("## SABORES DISPONÍVEIS")
+        for p in pizzas:
+            lines.append(f"- {p['sabor']}: {p['descricao']}")
+            lines.append(f"  Ingredientes: {p['ingredientes']}")
+        lines.append("")
+
+        # Combinações válidas de tamanho e borda
+        lines.append("## COMBINAÇÕES VÁLIDAS DE TAMANHO E BORDA")
+        total_flavors = len(pizzas)
+        for c in combos:
+            note = ""
+            if c["qtd_sabores"] < total_flavors:
+                note = f" (disponível para {c['qtd_sabores']} de {total_flavors} sabores)"
+            lines.append(f"- {c['tamanho']} + {c['borda']}{note}")
+        lines.append("")
+
+        # Restrições de borda por sabor
+        lines.append("## BORDAS DISPONÍVEIS POR SABOR")
+        flavor_borders: dict[str, list[str]] = {}
+        for row in borders_by_flavor:
+            flavor_borders.setdefault(row["sabor"], []).append(row["borda"])
+        all_borders = sorted({row["borda"] for row in borders_by_flavor})
+        for sabor, bordas in flavor_borders.items():
+            if set(bordas) != set(all_borders):
+                lines.append(f"- {sabor}: APENAS {', '.join(bordas)}")
+            else:
+                lines.append(f"- {sabor}: todas as bordas")
+        lines.append("")
+
+        # Tabela de preços
+        lines.append("## TABELA DE PREÇOS (R$)")
+        current_sabor = ""
+        for row in price_ranges:
+            if row["sabor"] != current_sabor:
+                current_sabor = row["sabor"]
+                lines.append(f"\n### {current_sabor}")
+            lines.append(
+                f"  {row['tamanho']:>8} | {row['borda']:<30} | R$ {row['preco']:.2f}"
+            )
+
+        report = "\n".join(lines)
+        logger.info("get_menu_report gerado com %d sabores", len(pizzas))
+        return report
+
+    except Exception:
+        logger.exception("Erro ao gerar relatório do cardápio")
+        raise
+    finally:
+        conn.close()

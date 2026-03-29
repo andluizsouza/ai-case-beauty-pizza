@@ -116,6 +116,7 @@ class TestMenuAgent:
         mock_settings.gemini_api_key = "fake-key"
         agent = create_menu_agent()
         tool_names = [t.__name__ for t in agent.tools]
+        assert "get_menu_report" in tool_names
         assert "search_menu" in tool_names
         assert "get_pizza_price" in tool_names
 
@@ -160,6 +161,8 @@ class TestOrderAgent:
         mock_settings.gemini_api_key = "fake-key"
         agent = create_order_agent()
         tool_names = [t.__name__ for t in agent.tools]
+        assert "get_menu_report" in tool_names
+        assert "get_pizza_price" in tool_names
         assert "create_order" in tool_names
         assert "add_item_to_order" in tool_names
         assert "remove_item_from_order" in tool_names
@@ -254,7 +257,4 @@ class TestOrderAgentDataRequirements:
     def test_instructions_item_name_format(self) -> None:
         """Instruções definem formato do nome do item."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "Pizza" in text
-        assert "Borda" in text
-        # Exemplo formatado
-        assert "Pizza Margherita Grande Borda Recheada com Cheddar" in text
+        assert "Pizza [Sabor] [Tamanho] Borda [Tipo da Borda]" in text

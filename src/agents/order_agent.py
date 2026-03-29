@@ -12,6 +12,7 @@ from agno.models.google import Gemini
 
 from src.config import settings
 from src.model_params import LLM_MODEL_ID
+from src.tools.menu_tools import get_menu_report, get_pizza_price
 from src.tools.order_tools import (
     add_item_to_order,
     create_order,
@@ -41,15 +42,19 @@ ORDER_AGENT_INSTRUCTIONS = [
     "Nunca crie um pedido sem ter o nome e o CPF do cliente.",
     # --- REGRAS OBRIGATÓRIAS ANTES DE ADICIONAR ITEM ---
     "ANTES de chamar 'add_item_to_order', você DEVE garantir que possui:",
-    "  1. Sabor da pizza (ex: Margherita, Calabresa).",
-    "  2. Tamanho da pizza (Pequena, Média ou Grande).",
-    "  3. Tipo de borda (Tradicional, Recheada com Cheddar, Recheada com Catupiry).",
+    "  1. Sabor da pizza.",
+    "  2. Tamanho da pizza.",
+    "  3. Tipo de borda.",
     "Se QUALQUER uma dessas informações estiver faltando, PERGUNTE ao usuário "
     "antes de prosseguir. NÃO assuma valores padrão.",
+    "Use 'get_menu_report' para consultar os sabores, tamanhos, bordas, "
+    "combinações válidas e restrições ATUALIZADOS do cardápio. "
+    "Só ofereça opções que existam no relatório — nunca invente sabores, "
+    "tamanhos ou bordas.",
+    "Use 'get_pizza_price' para obter o preço ANTES de adicionar o item. "
+    "Nunca invente preços.",
     "O nome do item deve seguir o formato: "
-    "'Pizza [Sabor] [Tamanho] Borda [Tipo da Borda]' "
-    "(ex: 'Pizza Margherita Grande Borda Recheada com Cheddar').",
-    "O preço unitário (unit_price) deve ser obtido do cardápio — nunca invente preços.",
+    "'Pizza [Sabor] [Tamanho] Borda [Tipo da Borda]'.",
     # --- PEDIDOS FINALIZADOS ---
     "Se o pedido já estiver concluído/finalizado, RECUSE qualquer alteração "
     "(adicionar itens, remover itens, alterar endereço). Informe educadamente "
@@ -88,6 +93,8 @@ def create_order_agent(
         name="order_agent",
         model=Gemini(id=LLM_MODEL_ID, api_key=settings.gemini_api_key),
         tools=[
+            get_menu_report,
+            get_pizza_price,
             create_order,
             add_item_to_order,
             remove_item_from_order,
