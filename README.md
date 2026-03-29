@@ -164,7 +164,10 @@ Case-Beauty-Pizza/
 │   └── main.py                # Ponto de entrada (terminal)
 ├── database/
 │   ├── knowledge_base.db      # Cardápio (read-only)
-│   └── agent_sessions.db      # Sessões persistidas
+│   ├── knowledge_base.sql     # Script para gerar o banco do cardápio
+│   ├── agent_sessions.db      # Sessões persistidas
+│   └── agent_logs.log         # Logs dos agentes
+
 ├── tests/                     # Testes (pytest)
 ├── docs/                      # Documentação técnica
 └── requirements.txt

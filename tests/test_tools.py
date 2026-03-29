@@ -86,16 +86,16 @@ class TestLoadMenuItems:
         items = _load_menu_items(DB_PATH)
         assert len(items) > 0
         first = items[0]
-        assert "sabor" in first
-        assert "tamanho" in first
-        assert "borda" in first
-        assert "preco" in first
+        assert hasattr(first, "sabor")
+        assert hasattr(first, "tamanho")
+        assert hasattr(first, "borda")
+        assert hasattr(first, "preco")
 
     def test_items_have_valid_prices(self) -> None:
         """Todos os preços são positivos."""
         items = _load_menu_items(DB_PATH)
         for item in items:
-            assert item["preco"] > 0
+            assert item.preco > 0
 
 
 class TestGetPizzaPrice:

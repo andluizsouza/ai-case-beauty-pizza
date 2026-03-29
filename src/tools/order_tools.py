@@ -5,11 +5,17 @@ logging de cada operação e tratamento de erros padronizado.
 """
 
 import logging
-from datetime import date
 
 import httpx
 
 from src.config import settings
+from src.models.order import (
+    AddItemsPayload,
+    ItemCreate,
+    OrderCreate,
+    UpdateAddressPayload,
+)
+from src.models.order import DeliveryAddressCreate
 
 logger = logging.getLogger("beauty_pizza")
 
@@ -52,11 +58,14 @@ def create_order(
         delivery_date,
     )
 
-    payload = {
-        "client_name": client_name,
-        "client_document": client_document,
-        "delivery_date": delivery_date or date.today().isoformat(),
-    }
+    order = OrderCreate(
+        client_name=client_name,
+        client_document=client_document,
+        **({
+            "delivery_date": delivery_date,
+        } if delivery_date else {}),
+    )
+    payload = order.model_dump(exclude_none=True, exclude={"items", "delivery_address"})
 
     try:
         response = httpx.post(
@@ -111,15 +120,10 @@ def add_item_to_order(
         order_id, item_name, quantity, unit_price,
     )
 
-    payload = {
-        "items": [
-            {
-                "name": item_name,
-                "quantity": quantity,
-                "unit_price": unit_price,
-            }
-        ]
-    }
+    items_payload = AddItemsPayload(
+        items=[ItemCreate(name=item_name, quantity=quantity, unit_price=unit_price)]
+    )
+    payload = items_payload.model_dump(mode="json")
 
     try:
         response = httpx.patch(
@@ -204,16 +208,14 @@ def update_delivery_address(
     """
     logger.info("update_delivery_address: order_id=%s", order_id)
 
-    payload: dict = {
-        "delivery_address": {
-            "street_name": street_name,
-            "number": number,
-        }
-    }
-    if complement:
-        payload["delivery_address"]["complement"] = complement
-    if reference_point:
-        payload["delivery_address"]["reference_point"] = reference_point
+    address = DeliveryAddressCreate(
+        street_name=street_name,
+        number=number,
+        complement=complement,
+        reference_point=reference_point,
+    )
+    addr_payload = UpdateAddressPayload(delivery_address=address)
+    payload = addr_payload.model_dump(mode="json")
 
     try:
         response = httpx.patch(

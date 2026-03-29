@@ -12,6 +12,7 @@ from google import genai
 
 from src.config import settings
 from src.model_params import EMBEDDING_MODEL_ID
+from src.models.menu import MenuItem, MenuSearchResult
 
 logger = logging.getLogger("beauty_pizza")
 
@@ -56,11 +57,11 @@ def _get_readonly_connection(db_path: str | None = None) -> sqlite3.Connection:
     return sqlite3.connect(uri, uri=True)
 
 
-def _load_menu_items(db_path: str | None = None) -> list[dict]:
+def _load_menu_items(db_path: str | None = None) -> list[MenuItem]:
     """Carrega todos os itens do cardápio com preços.
 
     Returns:
-        Lista de dicionários com sabor, descrição, ingredientes,
+        Lista de ``MenuItem`` com sabor, descrição, ingredientes,
         tamanho, borda e preço.
     """
     conn = _get_readonly_connection(db_path)
@@ -76,7 +77,7 @@ def _load_menu_items(db_path: str | None = None) -> list[dict]:
             JOIN bordas b ON b.id = pr.borda_id
             """
         ).fetchall()
-        return [dict(row) for row in rows]
+        return [MenuItem(**dict(row)) for row in rows]
     finally:
         conn.close()
 
@@ -113,25 +114,27 @@ def search_menu(query: str, db_path: str | None = None, top_k: int = 5) -> list[
 
         query_embedding = _get_embedding(query)
 
-        scored_items = []
+        scored_items: list[MenuSearchResult] = []
         for item in items:
             text = (
-                f"{item['sabor']} {item['descricao']} "
-                f"{item['ingredientes']} {item['tamanho']} {item['borda']}"
+                f"{item.sabor} {item.descricao} "
+                f"{item.ingredientes} {item.tamanho} {item.borda}"
             )
             item_embedding = _get_embedding(text)
             score = _cosine_similarity(query_embedding, item_embedding)
-            scored_items.append({**item, "score": round(score, 4)})
+            scored_items.append(
+                MenuSearchResult(**item.model_dump(), score=round(score, 4))
+            )
 
-        scored_items.sort(key=lambda x: x["score"], reverse=True)
+        scored_items.sort(key=lambda x: x.score, reverse=True)
         results = scored_items[:top_k]
 
         logger.info(
             "search_menu retornou %d resultados (top score=%.4f)",
             len(results),
-            results[0]["score"] if results else 0,
+            results[0].score if results else 0,
         )
-        return results
+        return [r.model_dump() for r in results]
 
     except Exception:
         logger.exception("Erro ao executar search_menu")
@@ -150,7 +153,8 @@ def get_pizza_price(
         db_path: Caminho opcional do banco (para testes).
 
     Returns:
-        Dicionário com sabor, tamanho, borda e preço, ou ``None`` se não encontrado.
+        Dicionário com sabor, tamanho, borda e preço (``MenuItem``),
+        ou ``None`` se não encontrado.
     """
     logger.info(
         "get_pizza_price: sabor='%s', tamanho='%s', borda='%s'",
@@ -181,9 +185,9 @@ def get_pizza_price(
             )
             return None
 
-        result = dict(row)
-        logger.info("Preço encontrado: R$ %.2f", result["preco"])
-        return result
+        item = MenuItem(**dict(row))
+        logger.info("Preço encontrado: R$ %.2f", item.preco)
+        return item.model_dump()
 
     except Exception:
         logger.exception("Erro ao buscar preço")
