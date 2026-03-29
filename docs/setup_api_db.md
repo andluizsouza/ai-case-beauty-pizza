@@ -6,7 +6,7 @@ Guia para configurar o ambiente local: clonar a API de pedidos, preparar o banco
 
 ## Pré-requisitos
 
-- Python 3.11+
+- Python 3.13
 - [Poetry](https://python-poetry.org/docs/#installation) (gerenciador de dependências da API)
 - Git
 - SQLite3 (já incluso na maioria das distribuições Linux e no Python)
@@ -71,13 +71,14 @@ sqlite3 knowledge_base.db < knowledge_base.sql
 ### Copiar o banco para o projeto Beauty Pizza
 
 ```bash
-# A partir da raiz do projeto Case-Beauty-Pizza/
-mkdir -p knowledge_base
-cp /caminho/para/candidates-case-order-api/knowledge_base/knowledge_base.sql knowledge_base/
-cp /caminho/para/candidates-case-order-api/knowledge_base/knowledge_base.db knowledge_base/
+# Dentro do repositório clonado (candidates-case-order-api/knowledge_base)
+cp knowledge_base.sql /caminho/para/Case-Beauty-Pizza/knowledge_base/
+cp knowledge_base.db /caminho/para/Case-Beauty-Pizza/knowledge_base/
 ```
 
 ### Verificar o banco (opcional)
+
+Agora dentro do repositório do Case Beauty Pizza:
 
 ```bash
 sqlite3 knowledge_base/knowledge_base.db

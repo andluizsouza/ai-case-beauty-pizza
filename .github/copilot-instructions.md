@@ -55,7 +55,7 @@ flowchart LR
 
 | Componente | Tecnologia |
 |---|---|
-| Linguagem | Python 3.11+ |
+| Linguagem | Python 3.13 |
 | Framework de Agentes | Agno (orquestração, state, memória) |
 | Modelo LLM | Google Gemini |
 | Banco do Cardápio | SQLite (read-only) |
