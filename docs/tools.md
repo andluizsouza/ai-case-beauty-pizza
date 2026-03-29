@@ -17,12 +17,27 @@ As tools são funções Python invocadas pelos agentes para executar ações con
 
 ## `menu_tools.py` — Cardápio (Read-Only)
 
+### `get_menu_report(db_path?) -> str`
+
+Gera relatório descritivo completo do cardápio a partir do banco de dados. Inclui:
+- Lista de sabores com descrições e ingredientes.
+- Tamanhos e bordas disponíveis.
+- Combinações válidas e restrições (pizzas doces, bordas recheadas).
+- Tabela de preços.
+
+Todas as regras de negócio são **derivadas dos dados** — zero hardcoding.
+
+```python
+report = get_menu_report()
+# Retorna string com relatório formatado
+```
+
 ### `search_menu(query, db_path?, top_k?) -> list[dict]`
 
 Busca semântica no cardápio usando RAG com embeddings Gemini.
 
 1. Carrega todos os itens do cardápio (JOIN de pizzas + tamanhos + bordas + precos).
-2. Gera embedding para a query do usuário via `text-embedding-004`.
+2. Gera embedding para a query do usuário via `gemini-embedding-001`.
 3. Gera embedding para cada item (texto: sabor + descrição + ingredientes + tamanho + borda).
 4. Calcula similaridade de cosseno e retorna os `top_k` mais similares.
 
@@ -105,17 +120,4 @@ Busca pedidos pelo CPF do cliente e opcionalmente pela data de entrega.
 
 ## Testes
 
-```bash
-pytest tests/test_tools.py -v
-```
-
-### Testes obrigatórios
-
-| Teste | O que valida |
-|---|---|
-| `test_api_timeout_handled_gracefully` | Timeout da API retorna erro sem exceção |
-| `test_sqlite_readonly_blocks_writes` | INSERT em modo `?mode=ro` levanta `OperationalError` |
-| `test_sqlite_readonly_blocks_delete` | DELETE bloqueado |
-| `test_sqlite_readonly_blocks_drop` | DROP TABLE bloqueado |
-| `test_known_price` | Preço exato da Margherita Pequena Tradicional = R$ 25,00 |
-| `test_sweet_pizza_only_traditional_crust` | Pizza doce + borda recheada = None |
+Ver [tests.md](tests.md) para o inventário completo de testes das tools.

@@ -69,6 +69,7 @@ Responde consultas sobre o cardápio: sabores, tamanhos, bordas, ingredientes e 
 
 | Tool | Descrição |
 |---|---|
+| `get_menu_report` | Relatório completo do cardápio (sabores, tamanhos, bordas, combinações, preços) |
 | `search_menu` | Busca semântica no cardápio (RAG com Embeddings Gemini) |
 | `get_pizza_price` | Preço exato de uma combinação sabor + tamanho + borda |
 
@@ -102,6 +103,8 @@ Gerencia o ciclo de vida completo do pedido via API REST.
 
 | Tool | Descrição |
 |---|---|
+| `get_menu_report` | Relatório completo do cardápio (compartilhada com menu_agent) |
+| `get_pizza_price` | Preço exato de uma combinação (compartilhada com menu_agent) |
 | `create_order` | Cria pedido (requer nome + CPF) |
 | `add_item_to_order` | Adiciona pizza ao pedido |
 | `remove_item_from_order` | Remove item do pedido |
@@ -116,11 +119,11 @@ Gerencia o ciclo de vida completo do pedido via API REST.
 2. **Perguntar o CPF** (11 dígitos numéricos).
 
 #### Antes de `add_item_to_order`:
-1. **Sabor** da pizza (ex: Margherita).
-2. **Tamanho** (Pequena, Média, Grande).
-3. **Borda** (Tradicional, Recheada com Cheddar, Recheada com Catupiry).
+1. **Sabor** da pizza.
+2. **Tamanho**.
+3. **Borda**.
 
-Se qualquer informação estiver faltando, o agente **pergunta ao usuário** — nunca assume valores padrão.
+Os valores válidos são obtidos dinamicamente via `get_menu_report`. Se qualquer informação estiver faltando, o agente **pergunta ao usuário** — nunca assume valores padrão.
 
 #### Pedidos finalizados:
 - **Recusa** qualquer alteração em pedidos já concluídos.
@@ -179,16 +182,4 @@ Todos os agentes possuem instruções de proteção:
 
 ## Testes
 
-```bash
-pytest tests/test_agents.py -v
-```
-
-### Cobertura
-
-| Classe de Teste | O que valida |
-|---|---|
-| `TestRouteDecision` | Criação, serialização, rejeição de agente inválido |
-| `TestRouterAgent` | Sem tools, structured output, nome correto |
-| `TestMenuAgent` | Tools de cardápio, session_id, segurança |
-| `TestOrderAgent` | Tools de pedidos, session_id, segurança |
-| `TestOrderAgentDataRequirements` | Exige CPF, sabor, tamanho, borda; recusa pedidos finalizados |
+Ver [tests.md](tests.md) para o inventário completo de testes dos agentes.

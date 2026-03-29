@@ -81,14 +81,4 @@ logger.info("Tel: (11) 99999-8888")
 
 ## Testes
 
-Os testes estão em `tests/test_pii_filter.py` e cobrem:
-
-- **`test_logger_masks_pii_data`**: CPF formatado é mascarado na saída.
-- **`test_mask_cpf_raw`**: CPF numérico (11 dígitos) é mascarado.
-- **`test_mask_phone_with_space`**: Telefone com espaço é mascarado.
-- **`test_cpf_in_args`**: PII passado como argumento do logging é capturado.
-- **`test_no_false_positives`**: Números curtos e textos normais não são afetados.
-
-```bash
-pytest tests/test_pii_filter.py -v
-```
+Ver [tests.md](tests.md) para o inventário completo de testes do PII filter.

@@ -117,14 +117,4 @@ agent = Agent(
 
 ## Testes
 
-Os testes estão em `tests/test_state_manager.py` e cobrem:
-
-- Estado inicial com valores padrão.
-- Atualização de `order_id` e histórico.
-- Bloqueio de `update()` e `add_history()` após `complete()`.
-- Serialização/desserialização roundtrip.
-- Rejeição de campos inexistentes (`ValueError`).
-
-```bash
-pytest tests/test_state_manager.py -v
-```
+Ver [tests.md](tests.md) para o inventário completo de testes do state manager.
