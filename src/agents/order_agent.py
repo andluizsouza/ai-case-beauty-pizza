@@ -100,6 +100,8 @@ def create_order_agent(
         db=db,
         markdown=True,
         add_datetime_to_context=True,
+        add_history_to_context=True,
+        num_history_runs=15,
     )
 
     logger.info("order_agent criado (session_id=%s)", session_id)
