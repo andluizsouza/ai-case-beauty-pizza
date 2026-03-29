@@ -4,9 +4,42 @@
 
 Este projeto é o **Atendente Virtual da Beauty Pizza**, um agente conversacional que auxilia clientes a consultarem o cardápio, montarem pedidos e finalizarem compras. Construído com Python, framework **Agno** para orquestração de agentes, e modelo **Gemini** (Google) como LLM.
 
-**Referências:**
-- Desafio Técnico: https://docs.google.com/document/d/1nPsN7-mhW4d3R2fLGbY8i4KXj9vTmU3LhXDABFbeCPg/edit?tab=t.0
-- API de Pedidos e Knowledge Base: https://github.com/gbtech-oss/candidates-case-order-api
+---
+
+## Arquitetura Cognitiva (Padrão de Roteamento)
+
+O sistema utiliza múltiplos agentes especializados orquestrados pelo Agno, seguindo um padrão de roteamento:
+
+```mermaid
+flowchart LR
+    U["👤 Usuário"] <--> R["🤖 router_agent"]
+    R --> M["📋 menu_agent (cardápio)"]
+    R --> O["🛒 order_agent (pedidos)"]
+```
+
+### Memória de Sessão
+
+- Persistência de memória via **Agno** com escopo por `session_id`.
+- O histórico de conversa e o state são mantidos durante toda a sessão.
+
+### `router_agent` — Roteador Principal
+
+- **Função**: Recepciona todas as mensagens do usuário e delega para o agente especializado correto.
+- **Otimização**: Utiliza **Structured Output via Pydantic** para decisão de roteamento (sem ambiguidade).
+- **Restrição**: **Não possui acesso a tools** — apenas roteia, não executa ações.
+- **Decisão**: Analisa a intenção do usuário e direciona para `menu_agent` ou `order_agent`.
+
+### `menu_agent` — Especialista no Cardápio
+
+- **Função**: Responde consultas sobre o cardápio (sabores, tamanhos, bordas, preços, ingredientes).
+- **Estratégia**: **RAG com Embeddings** sobre o banco SQLite do cardápio (read-only).
+- **Acesso**: Queries parametrizadas no SQLite via tools dedicadas.
+
+### `order_agent` — Especialista em Pedidos
+
+- **Função**: Gerencia todo o ciclo de vida do pedido (criação, adição de itens, endereço, consulta).
+- **Acesso**: Consome a **API REST** de pedidos via `httpx`.
+- **Responsabilidade ativa**: Deve gerenciar ativamente as informações de **sabor, tamanho e borda** da pizza, garantindo que o item do pedido contenha o nome completo (ex: "Pizza Margherita Grande Borda Recheada com Cheddar") e o preço correto obtido do cardápio.
 
 ---
 
@@ -192,11 +225,15 @@ Case-Beauty-Pizza/
 │   └── copilot-instructions.md
 ├── src/
 │   ├── __init__.py
-│   ├── agent.py              # Configuração principal do agente Agno
+│   ├── agents/               # Agentes Agno
+│   │   ├── __init__.py
+│   │   ├── router_agent.py   # Roteador principal (sem acesso a tools)
+│   │   ├── menu_agent.py     # Especialista em consultas ao cardápio
+│   │   └── order_agent.py    # Especialista no gerenciamento de pedidos    
 │   ├── tools/                # Tools do agente (cardápio, pedidos)
 │   │   ├── __init__.py
-│   │   ├── menu_tool.py      # Consultas ao SQLite do cardápio
-│   │   └── order_tool.py     # Integração com a API de pedidos
+│   │   ├── menu_tools.py     # Consultas ao SQLite do cardápio
+│   │   └── order_tools.py    # Integração com a API de pedidos
 │   ├── models/               # Pydantic models / contratos de dados
 │   │   ├── __init__.py
 │   │   ├── order.py
@@ -209,12 +246,12 @@ Case-Beauty-Pizza/
 ├── knowledge_base/
 │   ├── knowledge_base.sql    # Script de criação do banco
 │   └── knowledge_base.db     # Banco SQLite populado (read-only)
-├── tests/
+├── tests/                    # Suite de testes automatizados (pytest)
 │   ├── __init__.py
-│   ├── test_menu_tool.py
-│   ├── test_order_tool.py
+│   ├── test_menu_agent.py
+│   ├── test_order_agent.py
 │   ├── test_pii_filter.py
-│   └── test_agent.py
+│   └── test_router_agent.py
 ├── app.log                   # Log da aplicação (com PII mascarado)
 ├── pyproject.toml
 ├── README.md
