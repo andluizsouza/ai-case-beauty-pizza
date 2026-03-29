@@ -2,7 +2,7 @@
 agno[google]
 
 # LLM e Embeddings (Gemini)
-google-generativeai
+google-genai
 
 # HTTP client (async) para API de pedidos
 httpx
