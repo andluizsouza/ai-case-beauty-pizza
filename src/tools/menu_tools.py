@@ -18,7 +18,7 @@ logger = logging.getLogger("beauty_pizza")
 
 def _get_embedding(text: str) -> list[float]:
     """Gera embedding para um texto usando o modelo Gemini."""
-    client = genai.Client(api_key=settings.gemini_api_key)
+    client = genai.Client(api_key=settings.google_api_key)
     result = client.models.embed_content(model=EMBEDDING_MODEL_ID, contents=text)
     return result.embeddings[0].values
 

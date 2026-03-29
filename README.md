@@ -55,7 +55,7 @@ pip install -r requirements.txt
 
 ```bash
 cp .env.example .env
-# Edite .env com sua GEMINI_API_KEY
+# Edite .env com sua GOOGLE_API_KEY
 ```
 
 ### 3. Preparar o banco do cardápio

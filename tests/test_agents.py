@@ -71,21 +71,21 @@ class TestRouterAgent:
     @patch("src.agents.router_agent.settings")
     def test_router_has_no_tools(self, mock_settings: MagicMock) -> None:
         """Router agent não deve possuir tools."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_router_agent()
         assert agent.tools is None or agent.tools == []
 
     @patch("src.agents.router_agent.settings")
     def test_router_has_structured_output(self, mock_settings: MagicMock) -> None:
         """Router agent deve usar RouteDecision como output_schema."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_router_agent()
         assert agent.output_schema is RouteDecision
 
     @patch("src.agents.router_agent.settings")
     def test_router_name(self, mock_settings: MagicMock) -> None:
         """Router agent deve ter o nome 'router_agent'."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_router_agent()
         assert agent.name == "router_agent"
 
@@ -141,7 +141,7 @@ class TestMenuAgent:
     @patch("src.agents.menu_agent.settings")
     def test_menu_agent_has_tools(self, mock_settings: MagicMock) -> None:
         """Menu agent deve possuir tools de cardápio."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_menu_agent()
         tool_names = [t.__name__ for t in agent.tools]
         assert "get_menu_report" in tool_names
@@ -151,14 +151,14 @@ class TestMenuAgent:
     @patch("src.agents.menu_agent.settings")
     def test_menu_agent_name(self, mock_settings: MagicMock) -> None:
         """Menu agent deve ter o nome 'menu_agent'."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_menu_agent()
         assert agent.name == "menu_agent"
 
     @patch("src.agents.menu_agent.settings")
     def test_menu_agent_with_session(self, mock_settings: MagicMock) -> None:
         """Menu agent aceita session_id."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_menu_agent(session_id="test-session-123")
         assert agent.session_id == "test-session-123"
 
@@ -205,7 +205,7 @@ class TestOrderAgent:
     @patch("src.agents.order_agent.settings")
     def test_order_agent_has_tools(self, mock_settings: MagicMock) -> None:
         """Order agent deve possuir todas as tools de pedidos."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_order_agent()
         tool_names = [t.__name__ for t in agent.tools]
         assert "get_menu_report" not in tool_names
@@ -220,14 +220,14 @@ class TestOrderAgent:
     @patch("src.agents.order_agent.settings")
     def test_order_agent_name(self, mock_settings: MagicMock) -> None:
         """Order agent deve ter o nome 'order_agent'."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_order_agent()
         assert agent.name == "order_agent"
 
     @patch("src.agents.order_agent.settings")
     def test_order_agent_with_session(self, mock_settings: MagicMock) -> None:
         """Order agent aceita session_id."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
         agent = create_order_agent(session_id="session-abc")
         assert agent.session_id == "session-abc"
 

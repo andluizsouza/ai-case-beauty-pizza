@@ -609,7 +609,7 @@ class TestSecurityRedTeaming:
     @patch("src.agents.menu_agent.settings")
     def test_agents_use_session_scoping(self, mock_settings: MagicMock) -> None:
         """Agentes diferentes com session_ids distintos ficam isolados."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
 
         agent_a = create_menu_agent(session_id="session-A")
         agent_b = create_menu_agent(session_id="session-B")
@@ -621,7 +621,7 @@ class TestSecurityRedTeaming:
     @patch("src.agents.order_agent.settings")
     def test_order_agents_session_isolated(self, mock_settings: MagicMock) -> None:
         """Order agents com sessions diferentes não compartilham estado."""
-        mock_settings.gemini_api_key = "fake-key"
+        mock_settings.google_api_key = "fake-key"
 
         agent_x = create_order_agent(session_id="user-X")
         agent_y = create_order_agent(session_id="user-Y")

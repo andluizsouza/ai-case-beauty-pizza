@@ -17,11 +17,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     """Configurações carregadas de variáveis de ambiente."""
 
-    gemini_api_key: str = Field(default="")
+    google_api_key: str = Field(default="")
     order_api_base_url: str = Field(default="http://localhost:8000/api")
     knowledge_base_path: str = Field(default="database/knowledge_base.db")
     session_db_path: str = Field(default="database/agent_sessions.db")
-    log_file: str = Field(default="app.log")
+    logs_filename: str = Field(default="database/agent_logs.log")
 
 
 settings = Settings()
@@ -55,8 +55,8 @@ def set_session_id(session_id: str) -> None:
 def setup_logging() -> logging.Logger:
     """Configura e retorna o logger da aplicação com filtro de PII.
 
-    O logger grava em arquivo (``app.log``) com mascaramento automático
-    de dados sensíveis (CPF, telefone) via ``PIIMaskingFilter``.
+    O logger grava em arquivo (definido por ``LOGS_FILENAME``) com mascaramento
+    automático de dados sensíveis (CPF, telefone) via ``PIIMaskingFilter``.
 
     Returns:
         Logger configurado com handler de arquivo e filtro de PII.
@@ -69,7 +69,7 @@ def setup_logging() -> logging.Logger:
     logger.setLevel(logging.INFO)
 
     handler = logging.FileHandler(
-        BASE_DIR / settings.log_file,
+        BASE_DIR / settings.logs_filename,
         encoding="utf-8",
     )
     handler.setLevel(logging.INFO)

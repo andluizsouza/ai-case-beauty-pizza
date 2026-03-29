@@ -59,7 +59,8 @@ def main() -> None:
     """Loop principal do atendente virtual."""
     session_id = str(uuid.uuid4())
     set_session_id(session_id)
-    db = SqliteDb(db_file="database/agent_sessions.db", session_table="agent_sessions")
+    from src.config import settings
+    db = SqliteDb(db_file=settings.session_db_path, session_table="agent_sessions")
 
     router = create_router_agent()
     menu = create_menu_agent(session_id=session_id, db=db)
