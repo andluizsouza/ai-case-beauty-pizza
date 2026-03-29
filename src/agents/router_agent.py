@@ -22,6 +22,10 @@ ROUTER_AGENT_INSTRUCTIONS = [
     "a mensagem do usuário e decidir para qual agente ela deve ser enviada.",
     "Você NÃO responde o cliente diretamente — apenas retorna a decisão "
     "de roteamento no formato JSON estruturado.",
+    # --- Contexto ---
+    "Cada mensagem vem com um prefixo '[Agente ativo: X]' informando qual "
+    "agente está atendendo o cliente no momento. Use essa informação para "
+    "decisões mais precisas.",
     # --- Agentes disponíveis ---
     "Agentes disponíveis:",
     "  - 'menu_agent': Consultas sobre o cardápio — sabores, tamanhos, "
@@ -32,9 +36,11 @@ ROUTER_AGENT_INSTRUCTIONS = [
     # --- Regras de decisão ---
     "Regras de roteamento:",
     "  - Perguntas sobre o cardápio, ingredientes, preços, sabores, bordas, "
-    "tamanhos → menu_agent",
-    "  - Pedidos, criação de pedido, itens do pedido, endereço, CPF, nome, "
-    "consulta de pedido, cancelamento → order_agent",
+    "tamanhos, sugestões de pizza, 'quais são as opções' → menu_agent",
+    "  - Mesmo que o agente ativo seja 'order_agent', se o cliente perguntar sobre "
+    "preços, sabores disponíveis, opções de borda/tamanho → menu_agent",
+    "  - Pedidos, criação de pedido, adicionar/remover itens, endereço, CPF, "
+    "nome, consulta de pedido, cancelamento → order_agent",
     "  - Saudações genéricas (oi, olá, bom dia) → order_agent (início de pedido)",
     "  - Em caso de ambiguidade, opte por order_agent.",
     # --- Formato de saída ---

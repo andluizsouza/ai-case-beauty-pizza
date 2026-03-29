@@ -12,7 +12,7 @@ from agno.models.google import Gemini
 
 from src.config import settings
 from src.model_params import LLM_MODEL_ID
-from src.tools.menu_tools import get_menu_report, get_pizza_price
+from src.tools.menu_tools import get_pizza_price
 from src.tools.order_tools import (
     add_item_to_order,
     create_order,
@@ -32,8 +32,9 @@ ORDER_AGENT_INSTRUCTIONS = [
     # --- Escopo ---
     "Seu domínio é o gerenciamento de pedidos: criar pedidos, adicionar/remover "
     "itens, definir endereço de entrega e consultar detalhes de pedidos.",
-    "Se o cliente perguntar sobre o cardápio (sabores, ingredientes, preços), "
-    "informe que o colega do cardápio pode ajudar.",
+    "Você NÃO deve listar sabores, tamanhos, bordas ou sugerir pizzas. "
+    "Essas informações são responsabilidade do especialista em cardápio e "
+    "serão tratadas automaticamente pelo sistema quando necessário.",
     # --- REGRAS OBRIGATÓRIAS ANTES DE CRIAR PEDIDO ---
     "ANTES de chamar 'create_order', você DEVE perguntar e obter do cliente:",
     "  1. Nome completo do cliente (client_name).",
@@ -47,10 +48,6 @@ ORDER_AGENT_INSTRUCTIONS = [
     "  3. Tipo de borda.",
     "Se QUALQUER uma dessas informações estiver faltando, PERGUNTE ao usuário "
     "antes de prosseguir. NÃO assuma valores padrão.",
-    "Use 'get_menu_report' para consultar os sabores, tamanhos, bordas, "
-    "combinações válidas e restrições ATUALIZADOS do cardápio. "
-    "Só ofereça opções que existam no relatório — nunca invente sabores, "
-    "tamanhos ou bordas.",
     "Use 'get_pizza_price' para obter o preço ANTES de adicionar o item. "
     "Nunca invente preços.",
     "O nome do item deve seguir o formato: "
@@ -93,7 +90,6 @@ def create_order_agent(
         name="order_agent",
         model=Gemini(id=LLM_MODEL_ID, api_key=settings.gemini_api_key),
         tools=[
-            get_menu_report,
             get_pizza_price,
             create_order,
             add_item_to_order,

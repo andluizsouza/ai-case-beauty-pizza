@@ -69,7 +69,7 @@ Configuração do `order_agent` (tools, sessão, instruções).
 
 | Teste | Verifica |
 |---|---|
-| `test_order_agent_has_tools` | Tools registradas (8 esperadas) |
+| `test_order_agent_has_tools` | Tools registradas (7 esperadas, sem `get_menu_report`) |
 | `test_order_agent_name` | Nome correto |
 | `test_order_agent_with_session` | Suporte a `session_id` |
 | `test_order_instructions_security` | Regras anti-injection |

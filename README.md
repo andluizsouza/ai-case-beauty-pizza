@@ -19,7 +19,7 @@ flowchart LR
 |---|---|---|
 | `router_agent` | Roteia mensagens via Structured Output (Pydantic) | Nenhuma |
 | `menu_agent` | Consultas ao cardápio (RAG + Embeddings) | `get_menu_report`, `search_menu`, `get_pizza_price` |
-| `order_agent` | Gestão de pedidos via API REST | `get_menu_report`, `get_pizza_price` + 6 tools de pedidos |
+| `order_agent` | Gestão de pedidos via API REST | `get_pizza_price` + 6 tools de pedidos |
 
 ### Fontes de Dados
 

@@ -161,7 +161,7 @@ class TestOrderAgent:
         mock_settings.gemini_api_key = "fake-key"
         agent = create_order_agent()
         tool_names = [t.__name__ for t in agent.tools]
-        assert "get_menu_report" in tool_names
+        assert "get_menu_report" not in tool_names
         assert "get_pizza_price" in tool_names
         assert "create_order" in tool_names
         assert "add_item_to_order" in tool_names

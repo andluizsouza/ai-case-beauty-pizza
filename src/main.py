@@ -38,6 +38,22 @@ WELCOME_MESSAGE = (
 )
 
 
+def _route_message(router: object, user_input: str, active_agent: str) -> TargetAgent:
+    """Roteia a mensagem do usuário para o agente correto.
+
+    Fornece ao router o contexto do agente ativo para decisões
+    mais precisas.
+    """
+    context = f"[Agente ativo: {active_agent}] {user_input}"
+    try:
+        route_response = router.run(context)
+        decision = route_response.content
+        return TargetAgent(decision.target_agent)
+    except Exception:
+        logger.exception("Erro no roteamento")
+        return TargetAgent.ORDER
+
+
 def main() -> None:
     """Loop principal do atendente virtual."""
     session_id = str(uuid.uuid4())
@@ -51,6 +67,8 @@ def main() -> None:
         TargetAgent.MENU: menu,
         TargetAgent.ORDER: order,
     }
+
+    active_agent = TargetAgent.ORDER
 
     logger.info("Sessão iniciada: %s", session_id)
     print(WELCOME_MESSAGE)
@@ -71,16 +89,18 @@ def main() -> None:
 
         logger.info("Usuário: %s", user_input)
 
-        # 1. Rotear mensagem
-        try:
-            route_response = router.run(user_input)
-            decision = route_response.content
-            target = TargetAgent(decision.target_agent)
-        except Exception:
-            logger.exception("Erro no roteamento")
-            target = TargetAgent.ORDER
+        # 1. Rotear mensagem (com contexto do agente ativo)
+        target = _route_message(router, user_input, active_agent.value)
 
-        logger.info("Roteado para: %s", target.value)
+        if target != active_agent:
+            logger.info(
+                "Handoff: %s → %s (mensagem repassada silenciosamente)",
+                active_agent.value,
+                target.value,
+            )
+            active_agent = target
+        else:
+            logger.info("Mantendo agente: %s", target.value)
 
         # 2. Delegar para o agente especializado
         agent = agents[target]

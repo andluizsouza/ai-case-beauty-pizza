@@ -25,8 +25,8 @@ MENU_AGENT_INSTRUCTIONS = [
     "Seu único domínio é o cardápio da Beauty Pizza: sabores, tamanhos, "
     "bordas, ingredientes e preços.",
     "Se o cliente perguntar algo fora do cardápio (ex: status de pedido, "
-    "endereço de entrega), informe que você cuida apenas de consultas "
-    "ao cardápio e que o colega de pedidos pode ajudar.",
+    "endereço de entrega), responda apenas sobre o cardápio. "
+    "O sistema direcionará automaticamente perguntas de pedidos.",
     # --- Uso das tools ---
     "SEMPRE que iniciar uma conversa ou precisar listar opções, use a tool "
     "'get_menu_report' para obter o relatório completo e atualizado do cardápio "

@@ -103,14 +103,15 @@ Gerencia o ciclo de vida completo do pedido via API REST.
 
 | Tool | Descrição |
 |---|---|
-| `get_menu_report` | Relatório completo do cardápio (compartilhada com menu_agent) |
-| `get_pizza_price` | Preço exato de uma combinação (compartilhada com menu_agent) |
+| `get_pizza_price` | Preço exato de uma combinação (uso operacional ao adicionar item) |
 | `create_order` | Cria pedido (requer nome + CPF) |
 | `add_item_to_order` | Adiciona pizza ao pedido |
 | `remove_item_from_order` | Remove item do pedido |
 | `update_delivery_address` | Define endereço de entrega |
 | `get_order_details` | Consulta detalhes do pedido |
 | `filter_orders` | Busca pedidos por CPF e/ou data |
+
+> **Nota:** O `order_agent` NÃO possui tools de consulta ao cardápio (`get_menu_report`, `search_menu`). Quando o cliente precisa de informações sobre o cardápio (sabores, opções, preços), o `router_agent` redireciona para o `menu_agent`.
 
 ### Regras Obrigatórias
 
