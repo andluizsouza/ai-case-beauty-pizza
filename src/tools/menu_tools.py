@@ -11,20 +11,15 @@ from pathlib import Path
 from google import genai
 
 from src.config import settings
+from src.model_params import EMBEDDING_MODEL_ID
 
 logger = logging.getLogger("beauty_pizza")
-
-# ---------------------------------------------------------------------------
-# Embedding helpers
-# ---------------------------------------------------------------------------
-
-_embedding_model = "gemini-embedding-001"
 
 
 def _get_embedding(text: str) -> list[float]:
     """Gera embedding para um texto usando o modelo Gemini."""
     client = genai.Client(api_key=settings.gemini_api_key)
-    result = client.models.embed_content(model=_embedding_model, contents=text)
+    result = client.models.embed_content(model=EMBEDDING_MODEL_ID, contents=text)
     return result.embeddings[0].values
 
 
