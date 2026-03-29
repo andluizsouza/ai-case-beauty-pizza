@@ -1,6 +1,6 @@
 # Testes — Beauty Pizza
 
-Suíte com testes automatizados via `pytest`, cobrindo agentes, tools, segurança e PII.
+Suíte com testes automatizados via `pytest`, cobrindo agentes, tools, segurança, PII e integração com a API de pedidos.
 
 ```bash
 # Executar todos
@@ -18,7 +18,8 @@ python -m pytest tests/test_e2e.py -v
 |---|---|---|
 | `test_agents.py` | 29 | Configuração dos agentes, routing, instruções, segurança |
 | `test_e2e.py` | 42 | Jornada completa do cliente + red teaming de segurança |
-| `test_tools.py` | 26 | Tools de cardápio (SQLite) e pedidos (API REST) |
+| `test_tools.py` | 26 | Tools de cardápio (SQLite) e pedidos (API mockada) |
+| `test_order_tools_integration.py` | 20 | Integração real com a API de pedidos (requer API rodando) |
 | `test_pii_filter.py` | 12 | Mascaramento de CPF, telefone, falsos positivos |
 
 ---
@@ -272,3 +273,50 @@ Criação de pedido via API REST.
 | `test_short_numbers_not_masked` | Números curtos não mascarados |
 | `test_regular_text_not_masked` | Texto comum não alterado |
 | `test_price_not_masked` | Preços (R$ 45,90) não mascarados |
+
+---
+
+## test_order_tools_integration.py (20 testes)
+
+> Requer a API de pedidos rodando em `localhost:8000`. Os testes são ignorados automaticamente (`skipif`) se a API estiver fora.
+
+### TestCreateOrderIntegration (5)
+
+Criação de pedido contra a API real: campos de resposta, validação e constraint `unique_together`.
+
+| Teste | Verifica |
+|---|---|
+| `test_create_order_returns_id_and_fields` | Resposta contém `id`, `client_name`, `items`, `total_price`, `created_at` |
+| `test_create_order_without_delivery_date` | Pedido sem data usa data padrão |
+| `test_create_duplicate_order_returns_error` | Duplicata (name+cpf+date) retorna error |
+| `test_create_order_missing_name_returns_error` | Nome vazio rejeitado |
+| `test_create_order_missing_document_returns_error` | CPF vazio rejeitado |
+
+### TestFullOrderJourneyIntegration (11)
+
+Jornada completa: criar → itens → endereço → consultar → remover → filtrar. Cada teste inicia com pedido novo (CPF único via `uuid4`).
+
+| Teste | Verifica |
+|---|---|
+| `test_add_single_item` | Adiciona item e recebe confirmação |
+| `test_add_item_and_verify_total_price` | `total_price` calculado corretamente (qty × unit_price) |
+| `test_add_multiple_items` | Múltiplos itens somam no total |
+| `test_remove_item` | Adiciona e remove → item desaparece, total zera |
+| `test_remove_nonexistent_item_returns_error` | Item id=999999 retorna error |
+| `test_update_delivery_address` | Endereço completo (rua, número, complemento, referência) |
+| `test_update_address_minimal_fields` | Endereço apenas com campos obrigatórios |
+| `test_get_order_details_all_fields` | Detalhes contêm todos os campos da entidade Order |
+| `test_filter_by_document` | Filtro por CPF retorna o pedido criado |
+| `test_filter_by_document_and_date` | Filtro por CPF + data retorna o pedido |
+| `test_filter_nonexistent_document_returns_empty` | CPF sem pedidos retorna `[]` |
+
+### TestNonexistentOrderIntegration (4)
+
+Operações em pedido inexistente (id=999999).
+
+| Teste | Verifica |
+|---|---|
+| `test_get_details_nonexistent_order` | Detalhes de pedido inexistente → error |
+| `test_add_item_to_nonexistent_order` | Adicionar item → error |
+| `test_remove_item_from_nonexistent_order` | Remover item → error |
+| `test_update_address_nonexistent_order` | Atualizar endereço → error |
