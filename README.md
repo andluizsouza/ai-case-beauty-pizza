@@ -70,13 +70,15 @@ python src/main.py
 
 ---
 
-## Design Patterns e Arquitetura
+## Agentic Design Patterns
 
-### Padrão de Roteamento (Router Pattern)
+### 1. `router_agent`
 
-O `router_agent` é o ponto de entrada único. Recebe toda mensagem do usuário e retorna um `RouteDecision` (Pydantic + Enum) indicando o agente alvo — sem ambiguidade, sem tools, sem texto livre. Isso garante delegação determinística.
+O `router_agent` é o ponto de entrada único. Recebe toda mensagem do usuário e retorna um `RouteDecision` (Pydantic + Enum) indicando o agente alvo — sem ambiguidade, sem tools, sem texto livre. Isso garante uma delegação determinística.
 
-### RAG — Retrieval-Augmented Generation
+### 2. `menu_agent`
+
+Especialista em cardápio, responde exclusivamente a consultas sobre sabores, tamanhos, bordas e preços. Usa RAG (Relational Augmented Generation) para gerar respostas completas a partir do banco SQLite, sem hardcoding de regras.
 
 O `menu_agent` combina busca semântica com geração de texto:
 
@@ -84,13 +86,15 @@ O `menu_agent` combina busca semântica com geração de texto:
 2. **`search_menu`** — Gera embeddings (Gemini) para a query do usuário e cada item do cardápio, retornando os mais similares por cosseno.
 3. **`get_pizza_price`** — Consulta exata de preço via query parametrizada.
 
-O `order_agent` também tem acesso a `get_menu_report` e `get_pizza_price`, podendo consultar o cardápio e preços diretamente ao montar pedidos.
+### 3. `order_agent`
+
+Gerencia a jornada de pedidos via API REST. Tem acesso a tools para criar pedidos, adicionar itens, definir endereço e consultar status. O `order_agent` é o único responsável por interações relacionadas a pedidos — o `menu_agent` não tem permissão para falar sobre preços ou disponibilidade.
+
+O `order_agent` tem acesso a `get_pizza_price` para obter preços ao montar pedidos. Consultas sobre o cardápio são redirecionadas automaticamente para o `menu_agent` pelo router.
 
 ### Memória de Sessão
 
 Cada sessão tem um `session_id` único (UUID). Os agentes usam `add_history_to_context=True` com até 15 turnos de histórico, garantindo que informações fornecidas em mensagens anteriores (nome, CPF, sabor) sejam lembradas.
-
-Detalhes técnicos: [docs/agents.md](docs/agents.md) · [docs/tools.md](docs/tools.md) · [docs/state_management.md](docs/state_management.md)
 
 ---
 
@@ -125,14 +129,12 @@ O `PIIMaskingFilter` mascara dados sensíveis **antes** da gravação em `app.lo
 
 Cada `session_id` é independente — um usuário não acessa dados de outra sessão. Estado e memória são scoped via Agno + SQLite.
 
-Detalhes: [docs/logging_pii.md](docs/logging_pii.md)
-
 ---
 
 ## Testes
 
 ```bash
-# Executar toda a suíte (120 testes)
+# Executar toda a suíte
 python -m pytest tests/ -v
 
 # Executar por módulo
@@ -140,10 +142,9 @@ python -m pytest tests/test_agents.py -v
 python -m pytest tests/test_e2e.py -v
 python -m pytest tests/test_tools.py -v
 python -m pytest tests/test_pii_filter.py -v
-python -m pytest tests/test_state_manager.py -v
 ```
 
-A suíte cobre configuração de agentes, jornada e2e do cliente, segurança (red teaming), tools de cardápio/pedidos, mascaramento de PII e gerenciamento de estado.
+A suíte cobre configuração de agentes, jornada e2e do cliente, segurança (red teaming), tools de cardápio/pedidos e mascaramento de PII.
 
 Inventário completo: [docs/tests.md](docs/tests.md)
 
@@ -160,12 +161,11 @@ Case-Beauty-Pizza/
 │   ├── security/              # PII filter
 │   ├── config.py              # Settings + logging
 │   ├── model_params.py        # IDs dos modelos (LLM, embeddings)
-│   ├── state_manager.py       # Estado da sessão
 │   └── main.py                # Ponto de entrada (terminal)
 ├── database/
 │   ├── knowledge_base.db      # Cardápio (read-only)
 │   └── agent_sessions.db      # Sessões persistidas
-├── tests/                     # 120 testes (pytest)
+├── tests/                     # Testes (pytest)
 ├── docs/                      # Documentação técnica
 └── requirements.txt
 ```
@@ -176,12 +176,8 @@ Case-Beauty-Pizza/
 
 | Documento | Conteúdo |
 |---|---|
-| [docs/agents.md](docs/agents.md) | Agentes: arquitetura, tools, instruções, roteamento |
-| [docs/tools.md](docs/tools.md) | Tools: cardápio (RAG), pedidos (REST), tratamento de erros |
 | [docs/tests.md](docs/tests.md) | Inventário de testes e cobertura por módulo |
 | [docs/setup_api_db.md](docs/setup_api_db.md) | Setup: API de pedidos, banco do cardápio, variáveis de ambiente |
-| [docs/state_management.md](docs/state_management.md) | Estado da sessão: modelo, bloqueio, persistência |
-| [docs/logging_pii.md](docs/logging_pii.md) | Logging seguro: padrões mascarados, arquitetura do filtro |
 
 ---
 

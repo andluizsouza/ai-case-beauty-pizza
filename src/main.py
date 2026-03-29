@@ -20,12 +20,13 @@ _project_root = str(Path(__file__).resolve().parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
+from agno.db.sqlite import SqliteDb
+
 from src.agents.menu_agent import create_menu_agent
 from src.agents.order_agent import create_order_agent
 from src.agents.router_agent import create_router_agent
 from src.config import setup_logging
 from src.models.routing import TargetAgent
-from src.state_manager import StateManager
 
 logger = setup_logging()
 
@@ -57,7 +58,7 @@ def _route_message(router: object, user_input: str, active_agent: str) -> Target
 def main() -> None:
     """Loop principal do atendente virtual."""
     session_id = str(uuid.uuid4())
-    db = StateManager.create_db()
+    db = SqliteDb(db_file="database/agent_sessions.db", session_table="agent_sessions")
 
     router = create_router_agent()
     menu = create_menu_agent(session_id=session_id, db=db)

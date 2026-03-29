@@ -1,6 +1,6 @@
 # Testes — Beauty Pizza
 
-Suíte com testes automatizados via `pytest`, cobrindo agentes, tools, segurança, PII e estado.
+Suíte com testes automatizados via `pytest`, cobrindo agentes, tools, segurança e PII.
 
 ```bash
 # Executar todos
@@ -20,7 +20,6 @@ python -m pytest tests/test_e2e.py -v
 | `test_e2e.py` | 42 | Jornada completa do cliente + red teaming de segurança |
 | `test_tools.py` | 26 | Tools de cardápio (SQLite) e pedidos (API REST) |
 | `test_pii_filter.py` | 12 | Mascaramento de CPF, telefone, falsos positivos |
-| `test_state_manager.py` | 11 | Estado da sessão, bloqueio, serialização |
 
 ---
 
@@ -273,35 +272,3 @@ Criação de pedido via API REST.
 | `test_short_numbers_not_masked` | Números curtos não mascarados |
 | `test_regular_text_not_masked` | Texto comum não alterado |
 | `test_price_not_masked` | Preços (R$ 45,90) não mascarados |
-
----
-
-## test_state_manager.py (11 testes)
-
-### TestSessionState (3)
-
-| Teste | Verifica |
-|---|---|
-| `test_default_values` | Estado padrão (sem pedido, histórico vazio) |
-| `test_from_dict` | Criação a partir de dicionário |
-| `test_serialization_roundtrip` | Serialização → deserialização preserva dados |
-
-### TestStateManager (6)
-
-| Teste | Verifica |
-|---|---|
-| `test_initial_state` | Estado inicial correto |
-| `test_from_existing_state` | Restauração de estado existente |
-| `test_update_order_id` | Atualização do `order_id` |
-| `test_add_history` | Adição ao histórico |
-| `test_complete_order` | Marcação como completo |
-| `test_to_dict` | Exportação para dicionário |
-
-### TestStateBlocking (4)
-
-| Teste | Verifica |
-|---|---|
-| `test_block_update_when_completed` | Pedido completo bloqueia `update()` |
-| `test_block_add_history_when_completed` | Pedido completo bloqueia `add_history()` |
-| `test_state_unchanged_after_blocked_update` | Estado não muda após bloqueio |
-| `test_update_invalid_field_raises_value_error` | Campo inválido levanta `ValueError` |
