@@ -25,7 +25,7 @@ from agno.db.sqlite import SqliteDb
 from src.agents.menu_agent import create_menu_agent
 from src.agents.order_agent import create_order_agent
 from src.agents.router_agent import create_router_agent
-from src.config import setup_logging
+from src.config import set_session_id, setup_logging
 from src.models.routing import TargetAgent
 
 logger = setup_logging()
@@ -58,6 +58,7 @@ def _route_message(router: object, user_input: str, active_agent: str) -> Target
 def main() -> None:
     """Loop principal do atendente virtual."""
     session_id = str(uuid.uuid4())
+    set_session_id(session_id)
     db = SqliteDb(db_file="database/agent_sessions.db", session_table="agent_sessions")
 
     router = create_router_agent()

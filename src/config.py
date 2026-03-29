@@ -27,6 +27,31 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
+class SessionFilter(logging.Filter):
+    """Injeta ``session_id`` em todo LogRecord.
+
+    Permite atualizar o ``session_id`` em runtime via
+    ``set_session_id`` sem reconfigurar o logger.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.session_id = "-"
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.session_id = self.session_id  # type: ignore[attr-defined]
+        return True
+
+
+# Instância global — acessível via set_session_id()
+_session_filter = SessionFilter()
+
+
+def set_session_id(session_id: str) -> None:
+    """Define o session_id que será incluído em todas as mensagens de log."""
+    _session_filter.session_id = session_id
+
+
 def setup_logging() -> logging.Logger:
     """Configura e retorna o logger da aplicação com filtro de PII.
 
@@ -49,9 +74,10 @@ def setup_logging() -> logging.Logger:
     )
     handler.setLevel(logging.INFO)
     handler.addFilter(PIIMaskingFilter())
+    handler.addFilter(_session_filter)
 
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(filename)s:%(funcName)s:%(lineno)d | %(message)s",
+        "%(asctime)s | %(session_id)s | %(levelname)s | %(filename)s:%(funcName)s:%(lineno)d | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
