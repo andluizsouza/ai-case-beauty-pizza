@@ -1,0 +1,21 @@
+# Framework de agentes
+agno[google]
+
+# LLM e Embeddings (Gemini)
+google-generativeai
+
+# HTTP client (async) para API de pedidos
+httpx
+
+# Validação de dados
+pydantic>=2.0
+
+# Variáveis de ambiente
+python-dotenv
+
+# Testes
+pytest
+pytest-asyncio
+
+# Linting e formatting
+ruff
