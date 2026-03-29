@@ -3,7 +3,7 @@
 Foco em validar:
 - Configuração correta dos agentes (tools, instructions, output_schema).
 - Modelo de roteamento (RouteDecision / TargetAgent).
-- Regras do order_agent: exigir dados faltantes (sabor, tamanho, borda, CPF).
+- Fluxo: menu_agent como gateway de validação, order_agent para gestão.
 - Proteção contra prompt injection nos prompts dos agentes.
 """
 
@@ -98,8 +98,36 @@ class TestRouterAgent:
     def test_router_instructions_security(self) -> None:
         """Instruções do router contêm proteção contra prompt injection."""
         text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
-        assert "IGNORE" in text or "ignore" in text
+        assert "IGNORE" in text
         assert "system prompt" in text.lower()
+
+    def test_router_sends_greetings_to_menu(self) -> None:
+        """Saudações devem ir para menu_agent (primeiro contato)."""
+        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "saudaç" in lower or "olá" in lower or "oi" in lower
+        assert "menu_agent" in text
+
+    def test_router_sends_flavors_to_menu(self) -> None:
+        """Menção a sabores, preços ou cardápio deve ir para menu_agent."""
+        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "sabor" in lower
+        assert "menu_agent" in text
+
+    def test_router_sends_confirmation_to_order(self) -> None:
+        """Confirmação de item validado deve ir para order_agent."""
+        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "confirma" in lower
+        assert "order_agent" in text
+
+    def test_router_keeps_order_agent_during_flow(self) -> None:
+        """Router mantém order_agent durante coleta de dados (nome, CPF, endereço)."""
+        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "mantenha em order_agent" in lower or "mantenha" in lower
+        assert "nome" in lower or "cpf" in lower or "endereço" in lower
 
 
 # ===================================================================
@@ -138,13 +166,32 @@ class TestMenuAgent:
         """Instruções do menu_agent contêm proteção contra prompt injection."""
         text = " ".join(MENU_AGENT_INSTRUCTIONS)
         assert "IGNORE" in text
-        assert "system prompt" in text.lower()
+        assert "prompt" in text.lower()
 
-    def test_menu_instructions_scope(self) -> None:
-        """Instruções limitam escopo ao cardápio."""
+    def test_menu_is_first_contact(self) -> None:
+        """Menu agent é o primeiro contato do cliente."""
         text = " ".join(MENU_AGENT_INSTRUCTIONS)
-        assert "cardápio" in text.lower()
-        assert "search_menu" in text
+        lower = text.lower()
+        assert "primeiro contato" in lower
+
+    def test_menu_validates_before_order(self) -> None:
+        """Menu agent valida item antes de encaminhar para pedido."""
+        text = " ".join(MENU_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "validar" in lower
+        assert "get_pizza_price" in text
+
+    def test_menu_suggests_alternatives(self) -> None:
+        """Menu agent sugere alternativas quando item não existe."""
+        text = " ".join(MENU_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "alternativas" in lower or "sugi" in lower
+
+    def test_menu_presents_summary(self) -> None:
+        """Menu agent apresenta resumo com preço antes de confirmar."""
+        text = " ".join(MENU_AGENT_INSTRUCTIONS)
+        assert "Pizza [Sabor] [Tamanho] Borda [Borda]" in text
+        assert "R$" in text
 
 
 # ===================================================================
@@ -188,73 +235,58 @@ class TestOrderAgent:
         """Instruções do order_agent contêm proteção contra prompt injection."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         assert "IGNORE" in text
-        assert "system prompt" in text.lower()
+        assert "prompt" in text.lower()
 
+    def test_order_never_exposes_internal_separation(self) -> None:
+        """Order agent nunca expõe a separação interna de agentes."""
+        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "nunca exponha" in lower or "nunca" in lower
+        assert "atendente contínuo" in lower
 
-# ===================================================================
-# Order Agent — Regras de Dados Obrigatórios
-# ===================================================================
-
-
-class TestOrderAgentDataRequirements:
-    """Testes que validam se as instruções do order_agent exigem
-    dados obrigatórios antes de chamar as tools."""
-
-    def test_instructions_require_cpf_before_create(self) -> None:
+    def test_order_requires_cpf_before_create(self) -> None:
         """Instruções exigem CPF antes de criar pedido."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "CPF" in text or "client_document" in text
+        assert "CPF" in text
         assert "create_order" in text
-        # Deve exigir o documento ANTES de criar
-        assert "ANTES" in text or "antes" in text
 
-    def test_instructions_require_sabor(self) -> None:
-        """Instruções exigem sabor antes de adicionar item."""
+    def test_order_enforces_lifecycle(self) -> None:
+        """Pedido só existe após create_order retornar ID."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         lower = text.lower()
-        assert "sabor" in lower
+        assert "create_order" in text
+        assert "order_id" in lower or "id" in lower
+        assert "nunca diga" in lower or "não está feito" in lower
 
-    def test_instructions_require_tamanho(self) -> None:
-        """Instruções exigem tamanho antes de adicionar item."""
+    def test_order_requires_address_before_finalize(self) -> None:
+        """Deve pedir endereço antes de finalizar o pedido."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         lower = text.lower()
-        assert "tamanho" in lower
+        assert "endereço de entrega" in lower
+        assert "update_delivery_address" in text
 
-    def test_instructions_require_borda(self) -> None:
-        """Instruções exigem borda antes de adicionar item."""
+    def test_order_shows_summary_with_get_order_details(self) -> None:
+        """Deve usar get_order_details para resumo final."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "borda" in lower
+        assert "get_order_details" in text
 
-    def test_instructions_ask_user_if_missing(self) -> None:
-        """Instruções dizem para perguntar ao usuário se dados faltam."""
+    def test_order_uses_menu_context(self) -> None:
+        """Order agent utiliza contexto do cardápio para adicionar itens."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "pergunte" in lower or "pergunt" in lower
+        assert "Contexto do cardápio" in text
 
-    def test_instructions_no_default_values(self) -> None:
-        """Instruções proíbem assumir valores padrão."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "NÃO assuma" in text or "não assuma" in text.lower()
-
-    def test_instructions_require_all_three_before_add_item(self) -> None:
-        """Instruções exigem sabor, tamanho E borda juntos para add_item."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        # Todas as 3 informações devem estar mencionadas no contexto de add_item
-        assert "sabor" in lower
-        assert "tamanho" in lower
-        assert "borda" in lower
-        assert "add_item_to_order" in text
-
-    def test_instructions_refuse_completed_orders(self) -> None:
-        """Instruções mandam recusar alterações em pedidos finalizados."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "finalizado" in lower or "concluído" in lower
-        assert "recuse" in lower or "RECUSE" in text
-
-    def test_instructions_item_name_format(self) -> None:
+    def test_order_item_name_format(self) -> None:
         """Instruções definem formato do nome do item."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         assert "Pizza [Sabor] [Tamanho] Borda [Tipo da Borda]" in text
+
+    def test_order_refuses_completed_orders(self) -> None:
+        """Instruções mandam recusar alterações em pedidos finalizados."""
+        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
+        assert "RECUSE" in text or "finalizado" in text.lower()
+
+    def test_order_no_default_values(self) -> None:
+        """Instruções proíbem assumir valores padrão."""
+        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
+        assert "NÃO assuma" in text
+

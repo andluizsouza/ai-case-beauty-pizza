@@ -52,7 +52,7 @@ def _route_message(router: object, user_input: str, active_agent: str) -> Target
         return TargetAgent(decision.target_agent)
     except Exception:
         logger.exception("Erro no roteamento")
-        return TargetAgent.ORDER
+        return TargetAgent.MENU
 
 
 def main() -> None:
@@ -70,7 +70,8 @@ def main() -> None:
         TargetAgent.ORDER: order,
     }
 
-    active_agent = TargetAgent.ORDER
+    active_agent = TargetAgent.MENU
+    last_agent_reply = ""
 
     logger.info("Sessão iniciada: %s", session_id)
     print(WELCOME_MESSAGE)
@@ -93,6 +94,7 @@ def main() -> None:
 
         # 1. Rotear mensagem (com contexto do agente ativo)
         target = _route_message(router, user_input, active_agent.value)
+        previous_agent = active_agent
 
         if target != active_agent:
             logger.info(
@@ -104,15 +106,30 @@ def main() -> None:
         else:
             logger.info("Mantendo agente: %s", target.value)
 
-        # 2. Delegar para o agente especializado
+        # 2. Montar mensagem com contexto do agente anterior (handoff)
+        #    Quando há troca de menu_agent → order_agent, repassar a última
+        #    resposta do cardápio para que o order_agent saiba o que foi discutido.
+        agent_input = user_input
+        if (
+            last_agent_reply
+            and previous_agent == TargetAgent.MENU
+            and target == TargetAgent.ORDER
+        ):
+            agent_input = (
+                f"[Contexto do cardápio: {last_agent_reply}]\n\n"
+                f"{user_input}"
+            )
+
+        # 3. Delegar para o agente especializado
         agent = agents[target]
         try:
-            response = agent.run(user_input)
+            response = agent.run(agent_input)
             reply = response.content or "Desculpe, não consegui processar sua mensagem."
         except Exception:
             logger.exception("Erro no agente %s", target.value)
             reply = "Desculpe, ocorreu um erro. Tente novamente."
 
+        last_agent_reply = reply
         print(f"\n🤖 {reply}\n")
         logger.info("Resposta enviada ao usuário")
 
