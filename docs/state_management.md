@@ -82,7 +82,7 @@ from agno.agent import Agent
 from src.state_manager import StateManager
 
 # Criar db (helper estático)
-db = StateManager.create_db(db_path="agent_sessions.db")
+db = StateManager.create_db(db_path="database/agent_sessions.db")
 
 # No setup do agente
 agent = Agent(

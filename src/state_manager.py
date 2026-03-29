@@ -48,7 +48,7 @@ class StateManager:
         self._state = SessionState(**raw)
 
     @staticmethod
-    def create_db(db_path: str = "agent_sessions.db") -> SqliteDb:
+    def create_db(db_path: str = "database/agent_sessions.db") -> SqliteDb:
         """Cria o banco SQLite para persistência de sessões via Agno.
 
         Args:

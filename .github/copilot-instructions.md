@@ -243,9 +243,10 @@ Case-Beauty-Pizza/
 │   │   ├── pii_filter.py
 │   │   └── input_sanitizer.py
 │   └── config.py             # Configurações, variáveis de ambiente
-├── knowledge_base/
+├── database/
 │   ├── knowledge_base.sql    # Script de criação do banco
-│   └── knowledge_base.db     # Banco SQLite populado (read-only)
+│   ├── knowledge_base.db     # Banco SQLite populado (read-only)
+│   └── agent_sessions.db     # Sessões persistidas (Agno SqliteDb)
 ├── tests/                    # Suite de testes automatizados (pytest)
 │   ├── __init__.py
 │   ├── test_menu_agent.py

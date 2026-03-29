@@ -19,8 +19,8 @@ class Settings(BaseSettings):
 
     gemini_api_key: str = Field(default="")
     order_api_base_url: str = Field(default="http://localhost:8000/api")
-    knowledge_base_path: str = Field(default="knowledge_base/knowledge_base.db")
-    session_db_path: str = Field(default="agent_sessions.db")
+    knowledge_base_path: str = Field(default="database/knowledge_base.db")
+    session_db_path: str = Field(default="database/agent_sessions.db")
     log_file: str = Field(default="app.log")
 
 

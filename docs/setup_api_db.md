@@ -72,8 +72,8 @@ sqlite3 knowledge_base.db < knowledge_base.sql
 
 ```bash
 # Dentro do repositório clonado (candidates-case-order-api/knowledge_base)
-cp knowledge_base.sql /caminho/para/Case-Beauty-Pizza/knowledge_base/
-cp knowledge_base.db /caminho/para/Case-Beauty-Pizza/knowledge_base/
+cp knowledge_base.sql /caminho/para/Case-Beauty-Pizza/database/
+cp knowledge_base.db /caminho/para/Case-Beauty-Pizza/database/
 ```
 
 ### Verificar o banco (opcional)
@@ -81,7 +81,7 @@ cp knowledge_base.db /caminho/para/Case-Beauty-Pizza/knowledge_base/
 Agora dentro do repositório do Case Beauty Pizza:
 
 ```bash
-sqlite3 knowledge_base/knowledge_base.db
+sqlite3 database/knowledge_base.db
 
 -- Listar tabelas
 .tables
