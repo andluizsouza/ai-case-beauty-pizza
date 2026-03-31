@@ -42,7 +42,7 @@ flowchart LR
 | Arquitetura dos Agentes | [docs/AGENTIC_DESIGN.md](docs/AGENTIC_DESIGN.md) |
 | Princípios de Segurança | [docs/SECURITY.md](docs/SECURITY.md) |
 | Testes Automatizados | [docs/TEST_AUTO.md](docs/TEST_AUTO.md) |
-| Cenários de Testes | [docs/TEST_SCENARIOS.md](docs/TEST_SCENARIOS.md) |
+| Testes - User Stories | [docs/TEST_SCENARIOS.md](docs/TEST_SCENARIOS.md) |
 
 ---
 
@@ -113,15 +113,16 @@ Case-Beauty-Pizza/
 │   ├── config.py              # Settings + logging
 │   ├── model_params.py        # IDs dos modelos (LLM, embeddings)
 │   └── main.py                # Ponto de entrada (terminal)
-├── database/
+├── database/                  # (Será preenchido ao longo do setup)
 │   ├── knowledge_base.db      # Cardápio (read-only)
 │   ├── knowledge_base.sql     # Script para gerar o banco do cardápio
 │   ├── agent_sessions.db      # Sessões persistidas
 │   └── agent_logs.log         # Logs dos agentes
-
 ├── tests/                     # Testes (pytest)
-├── docs/                      # Documentação técnica
-└── requirements.txt
+├── docs/                      # Documentações técnicas
+├── .env.example               # Exemplo de variáveis de ambiente
+├── README.md                  # Documentação geral do projeto
+└── requirements.txt           # Dependências do projeto
 ```
 
 ---
