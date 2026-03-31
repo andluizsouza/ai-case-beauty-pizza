@@ -1,19 +1,21 @@
 # Setup da API de Pedidos e Banco de Conhecimento
 
-Guia para configurar o ambiente local: clonar a API de pedidos, preparar o banco SQLite do cardápio e subir o servidor.
+Guia para configurar o ambiente local: subir a API de pedidos e preparar o banco SQLite do cardápio.
 
 ---
 
 ## Pré-requisitos
 
+- Git
 - Python 3.13
 - [Poetry](https://python-poetry.org/docs/#installation) (gerenciador de dependências da API)
-- Git
 - SQLite3 (já incluso na maioria das distribuições Linux e no Python)
 
 ---
 
 ## 1. Clonar o Repositório da API de Pedidos
+
+Em outro pasta (fora do repositório do Case Beauty Pizza), clone o repositório da API de pedidos:
 
 ```bash
 git clone https://github.com/gbtech-oss/candidates-case-order-api.git
@@ -99,15 +101,3 @@ WHERE p.sabor = 'Margherita';
 
 .quit
 ```
-
-> **Importante:** O banco do cardápio deve ser acessado em modo **read-only** pela aplicação (`?mode=ro`). Veja `.github/copilot-instructions.md` para detalhes de segurança.
-
----
-
-## 5. Configurar Variáveis de Ambiente
-
-```bash
-cp .env.example .env
-```
-
-Edite o `.env` com sua chave da API Gemini e ajuste os caminhos conforme necessário.

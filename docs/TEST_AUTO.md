@@ -1,4 +1,4 @@
-# Testes — Beauty Pizza
+# Testes Automatizados — Beauty Pizza
 
 Suíte com testes automatizados via `pytest`, cobrindo agentes, tools, segurança, PII e integração com a API de pedidos.
 
@@ -16,15 +16,15 @@ python -m pytest tests/test_e2e.py -v
 
 | Arquivo | Testes | Cobertura |
 |---|---|---|
-| `test_agents.py` | 29 | Configuração dos agentes, routing, instruções, segurança |
+| `test_agents.py` | 36 | Configuração dos agentes, routing, instruções, segurança |
 | `test_e2e.py` | 42 | Jornada completa do cliente + red teaming de segurança |
-| `test_tools.py` | 26 | Tools de cardápio (SQLite) e pedidos (API mockada) |
+| `test_tools.py` | 24 | Tools de cardápio (SQLite) e pedidos (API mockada) |
 | `test_order_tools_integration.py` | 20 | Integração real com a API de pedidos (requer API rodando) |
 | `test_pii_filter.py` | 12 | Mascaramento de CPF, telefone, falsos positivos |
 
 ---
 
-## test_agents.py (29 testes)
+## test_agents.py (36 testes)
 
 ### TestRouteDecision (6)
 
@@ -39,9 +39,9 @@ Valida o modelo Pydantic de roteamento (`RouteDecision` + `TargetAgent` Enum).
 | `test_json_serialization` | Serialização para JSON |
 | `test_json_deserialization` | Deserialização de JSON |
 
-### TestRouterAgent (5)
+### TestRouterAgent (9)
 
-Verifica configuração do `router_agent` (sem tools, structured output).
+Verifica configuração e comportamento de roteamento do `router_agent`.
 
 | Teste | Verifica |
 |---|---|
@@ -50,10 +50,14 @@ Verifica configuração do `router_agent` (sem tools, structured output).
 | `test_router_name` | Nome correto |
 | `test_router_instructions_contain_agents` | Instruções mencionam agentes alvo |
 | `test_router_instructions_security` | Instruções contêm regras anti-injection |
+| `test_router_sends_greetings_to_menu` | Saudações roteadas para `menu_agent` |
+| `test_router_sends_flavors_to_menu` | Menções a sabores roteadas para `menu_agent` |
+| `test_router_sends_confirmation_to_order` | Confirmações roteadas para `order_agent` |
+| `test_router_keeps_order_agent_during_flow` | Mantém `order_agent` durante fluxo de pedido |
 
-### TestMenuAgent (5)
+### TestMenuAgent (8)
 
-Configuração do `menu_agent` (tools, sessão, instruções).
+Configuração e instruções do `menu_agent` (tools, sessão, fluxo de atendimento).
 
 | Teste | Verifica |
 |---|---|
@@ -61,11 +65,14 @@ Configuração do `menu_agent` (tools, sessão, instruções).
 | `test_menu_agent_name` | Nome correto |
 | `test_menu_agent_with_session` | Suporte a `session_id` |
 | `test_menu_instructions_security` | Regras anti-injection |
-| `test_menu_instructions_scope` | Escopo restrito ao cardápio |
+| `test_menu_is_first_contact` | Instruções definem menu como primeiro contato |
+| `test_menu_validates_before_order` | Valida item antes de encaminhar ao pedido |
+| `test_menu_suggests_alternatives` | Sugere alternativas para sabores inexistentes |
+| `test_menu_presents_summary` | Apresenta resumo com preço antes de confirmar |
 
-### TestOrderAgent (4)
+### TestOrderAgent (13)
 
-Configuração do `order_agent` (tools, sessão, instruções).
+Configuração do `order_agent` (tools, sessão, instruções) e validação de que as instruções exigem dados completos.
 
 | Teste | Verifica |
 |---|---|
@@ -73,22 +80,15 @@ Configuração do `order_agent` (tools, sessão, instruções).
 | `test_order_agent_name` | Nome correto |
 | `test_order_agent_with_session` | Suporte a `session_id` |
 | `test_order_instructions_security` | Regras anti-injection |
-
-### TestOrderAgentDataRequirements (9)
-
-Valida que as instruções do `order_agent` exigem dados completos antes de cada operação.
-
-| Teste | Verifica |
-|---|---|
-| `test_instructions_require_cpf_before_create` | CPF obrigatório antes de criar pedido |
-| `test_instructions_require_sabor` | Sabor obrigatório |
-| `test_instructions_require_tamanho` | Tamanho obrigatório |
-| `test_instructions_require_borda` | Borda obrigatória |
-| `test_instructions_ask_user_if_missing` | Agente pergunta dados faltantes |
-| `test_instructions_no_default_values` | Nenhum valor default assumido |
-| `test_instructions_require_all_three_before_add_item` | Sabor + tamanho + borda antes de adicionar item |
-| `test_instructions_refuse_completed_orders` | Recusa alterações em pedidos finalizados |
-| `test_instructions_item_name_format` | Formato do nome: "Pizza {Sabor} {Tamanho} Borda {Borda}" |
+| `test_order_never_exposes_internal_separation` | Não expõe separação interna de sistemas |
+| `test_order_requires_cpf_before_create` | CPF obrigatório antes de criar pedido |
+| `test_order_enforces_lifecycle` | Ciclo de vida obrigatório (create → add_item) |
+| `test_order_requires_address_before_finalize` | Exige endereço antes de finalizar |
+| `test_order_shows_summary_with_get_order_details` | Resumo final via `get_order_details` |
+| `test_order_uses_menu_context` | Usa contexto do cardápio para itens |
+| `test_order_item_name_format` | Formato do nome: "Pizza {Sabor} {Tamanho} Borda {Borda}" |
+| `test_order_refuses_completed_orders` | Recusa alterações em pedidos finalizados |
+| `test_order_no_default_values` | Nenhum valor default assumido |
 
 ---
 
@@ -152,7 +152,7 @@ Testes adversariais: prompt injection, role switching, escopo, SQL injection, se
 
 ---
 
-## test_tools.py (26 testes)
+## test_tools.py (24 testes)
 
 ### TestGetReadonlyConnection (4)
 
