@@ -157,7 +157,9 @@ _FAKE_ORDER = {
 }
 
 
-def _mock_response(status_code: int = 200, json_data: dict | None = None) -> httpx.Response:
+def _mock_response(
+    status_code: int = 200, json_data: dict | None = None
+) -> httpx.Response:
     """Cria um httpx.Response mockado."""
     response = httpx.Response(
         status_code=status_code,
@@ -192,7 +194,8 @@ class TestCreateOrder:
         mock_post.return_value = _mock_response(400, {"detail": "Bad request"})
         mock_post.return_value.raise_for_status = MagicMock(
             side_effect=httpx.HTTPStatusError(
-                "error", request=httpx.Request("POST", "http://test"),
+                "error",
+                request=httpx.Request("POST", "http://test"),
                 response=_mock_response(400, {"detail": "Bad request"}),
             )
         )
@@ -275,7 +278,9 @@ class TestGetOrderDetails:
     @patch("src.tools.order_tools.httpx.get")
     def test_get_details_success(self, mock_get: MagicMock) -> None:
         """Busca detalhes com sucesso."""
-        mock_get.return_value = _mock_response(200, {**_FAKE_ORDER, "total_price": 45.0})
+        mock_get.return_value = _mock_response(
+            200, {**_FAKE_ORDER, "total_price": 45.0}
+        )
         result = get_order_details(order_id=1)
         assert result["id"] == 1
         assert result["total_price"] == 45.0

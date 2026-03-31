@@ -35,12 +35,8 @@ class PIIMaskingFilter(logging.Filter):
 
     def _mask(self, text: str) -> str:
         """Aplica todas as regras de mascaramento ao texto."""
-        text = self.CPF_FORMATTED.sub(
-            lambda m: f"***.***.***-{m.group()[-2:]}", text
-        )
-        text = self.CPF_RAW.sub(
-            lambda m: f"*********{m.group()[-2:]}", text
-        )
+        text = self.CPF_FORMATTED.sub(lambda m: f"***.***.***-{m.group()[-2:]}", text)
+        text = self.CPF_RAW.sub(lambda m: f"*********{m.group()[-2:]}", text)
         text = self.PHONE.sub(
             lambda m: f"{m.group(1)}{'*' * len(m.group(2))}{m.group(3)}",
             text,

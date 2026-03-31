@@ -32,7 +32,9 @@ _TODAY = "2026-03-29"
 def _api_available() -> bool:
     """Verifica se a API está acessível."""
     try:
-        httpx.get("http://localhost:8000/api/orders/filter/?client_document=0", timeout=3)
+        httpx.get(
+            "http://localhost:8000/api/orders/filter/?client_document=0", timeout=3
+        )
         return True
     except Exception:
         return False

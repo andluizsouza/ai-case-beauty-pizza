@@ -97,13 +97,9 @@ class TestPhoneMasking:
 class TestMultiplePatterns:
     """Testes com múltiplos PII na mesma mensagem."""
 
-    def test_mask_cpf_and_phone_together(
-        self, pii_logger: logging.Logger
-    ) -> None:
+    def test_mask_cpf_and_phone_together(self, pii_logger: logging.Logger) -> None:
         """Mascara CPF e telefone na mesma mensagem."""
-        pii_logger.info(
-            "Cliente 123.456.789-00 tel (11) 99999-8888 registrado"
-        )
+        pii_logger.info("Cliente 123.456.789-00 tel (11) 99999-8888 registrado")
 
         output = _get_output(pii_logger)
         assert "123.456.789-00" not in output
@@ -119,7 +115,8 @@ class TestNoFalsePositives:
     """Garante que dados legítimos não sejam mascarados."""
 
     def test_short_numbers_not_masked(
-        self, pii_logger: logging.Logger,
+        self,
+        pii_logger: logging.Logger,
     ) -> None:
         """Números menores que 11 dígitos não são mascarados como CPF."""
         pii_logger.info("Pedido 12345 criado com sucesso")
@@ -128,7 +125,8 @@ class TestNoFalsePositives:
         assert "12345" in output
 
     def test_regular_text_not_masked(
-        self, pii_logger: logging.Logger,
+        self,
+        pii_logger: logging.Logger,
     ) -> None:
         """Texto comum permanece inalterado."""
         msg = "Pizza Margherita Grande Borda Tradicional"

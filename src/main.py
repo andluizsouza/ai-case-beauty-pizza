@@ -60,6 +60,7 @@ def main() -> None:
     session_id = str(uuid.uuid4())
     set_session_id(session_id)
     from src.config import settings
+
     db = SqliteDb(db_file=settings.session_db_path, session_table="agent_sessions")
 
     router = create_router_agent()
@@ -116,10 +117,7 @@ def main() -> None:
             and previous_agent == TargetAgent.MENU
             and target == TargetAgent.ORDER
         ):
-            agent_input = (
-                f"[Contexto do cardápio: {last_agent_reply}]\n\n"
-                f"{user_input}"
-            )
+            agent_input = f"[Contexto do cardápio: {last_agent_reply}]\n\n{user_input}"
 
         # 3. Delegar para o agente especializado
         agent = agents[target]

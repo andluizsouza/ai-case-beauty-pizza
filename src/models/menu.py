@@ -17,7 +17,9 @@ class Pizza(BaseModel):
     id: int = Field(description="ID auto-increment da pizza.")
     sabor: str = Field(description="Nome do sabor (ex: 'Margherita').")
     descricao: str = Field(description="Descrição do sabor.")
-    ingredientes: str = Field(description="Lista de ingredientes separados por vírgula.")
+    ingredientes: str = Field(
+        description="Lista de ingredientes separados por vírgula."
+    )
 
 
 class Tamanho(BaseModel):

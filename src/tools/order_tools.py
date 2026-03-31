@@ -61,9 +61,13 @@ def create_order(
     order = OrderCreate(
         client_name=client_name,
         client_document=client_document,
-        **({
-            "delivery_date": delivery_date,
-        } if delivery_date else {}),
+        **(
+            {
+                "delivery_date": delivery_date,
+            }
+            if delivery_date
+            else {}
+        ),
     )
     payload = order.model_dump(exclude_none=True, exclude={"items", "delivery_address"})
 
@@ -82,7 +86,11 @@ def create_order(
         logger.error("Timeout ao criar pedido")
         return {"error": "Timeout ao criar pedido. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao criar pedido: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao criar pedido: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao criar pedido: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao criar pedido")
@@ -117,7 +125,10 @@ def add_item_to_order(
     """
     logger.info(
         "add_item_to_order: order_id=%s, item='%s', qty=%d, price=%.2f",
-        order_id, item_name, quantity, unit_price,
+        order_id,
+        item_name,
+        quantity,
+        unit_price,
     )
 
     items_payload = AddItemsPayload(
@@ -140,7 +151,11 @@ def add_item_to_order(
         logger.error("Timeout ao adicionar item ao pedido %s", order_id)
         return {"error": "Timeout ao adicionar item. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao adicionar item: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao adicionar item: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao adicionar item: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao adicionar item")
@@ -159,7 +174,8 @@ def remove_item_from_order(order_id: int, item_id: int) -> dict:
     """
     logger.info(
         "remove_item_from_order: order_id=%s, item_id=%s",
-        order_id, item_id,
+        order_id,
+        item_id,
     )
 
     try:
@@ -175,7 +191,11 @@ def remove_item_from_order(order_id: int, item_id: int) -> dict:
         logger.error("Timeout ao remover item %s do pedido %s", item_id, order_id)
         return {"error": "Timeout ao remover item. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao remover item: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao remover item: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao remover item: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao remover item")
@@ -232,7 +252,11 @@ def update_delivery_address(
         logger.error("Timeout ao atualizar endereço do pedido %s", order_id)
         return {"error": "Timeout ao atualizar endereço. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao atualizar endereço: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao atualizar endereço: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao atualizar endereço: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao atualizar endereço")
@@ -269,7 +293,11 @@ def get_order_details(order_id: int) -> dict:
         logger.error("Timeout ao buscar detalhes do pedido %s", order_id)
         return {"error": "Timeout ao buscar detalhes do pedido. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao buscar pedido: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao buscar pedido: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao buscar pedido: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao buscar detalhes do pedido")
@@ -288,7 +316,8 @@ def filter_orders(client_document: str, delivery_date: str | None = None) -> dic
     """
     logger.info(
         "filter_orders: document='%s', date='%s'",
-        client_document, delivery_date,
+        client_document,
+        delivery_date,
     )
 
     params: dict[str, str] = {"client_document": client_document}
@@ -303,14 +332,21 @@ def filter_orders(client_document: str, delivery_date: str | None = None) -> dic
         )
         response.raise_for_status()
         data = response.json()
-        logger.info("filter_orders retornou %d pedidos", len(data) if isinstance(data, list) else 0)
+        logger.info(
+            "filter_orders retornou %d pedidos",
+            len(data) if isinstance(data, list) else 0,
+        )
         return data
 
     except httpx.TimeoutException:
         logger.error("Timeout ao filtrar pedidos")
         return {"error": "Timeout ao filtrar pedidos. Tente novamente."}
     except httpx.HTTPStatusError as exc:
-        logger.error("Erro HTTP %s ao filtrar pedidos: %s", exc.response.status_code, exc.response.text)
+        logger.error(
+            "Erro HTTP %s ao filtrar pedidos: %s",
+            exc.response.status_code,
+            exc.response.text,
+        )
         return {"error": f"Erro ao filtrar pedidos: {exc.response.text}"}
     except Exception:
         logger.exception("Erro inesperado ao filtrar pedidos")

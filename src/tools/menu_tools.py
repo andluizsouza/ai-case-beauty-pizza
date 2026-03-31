@@ -158,7 +158,9 @@ def get_pizza_price(
     """
     logger.info(
         "get_pizza_price: sabor='%s', tamanho='%s', borda='%s'",
-        sabor, tamanho, borda,
+        sabor,
+        tamanho,
+        borda,
     )
 
     conn = _get_readonly_connection(db_path)
@@ -181,7 +183,9 @@ def get_pizza_price(
         if row is None:
             logger.warning(
                 "Preço não encontrado: sabor='%s', tamanho='%s', borda='%s'",
-                sabor, tamanho, borda,
+                sabor,
+                tamanho,
+                borda,
             )
             return None
 
@@ -272,7 +276,9 @@ def get_menu_report(db_path: str | None = None) -> str:
         for c in combos:
             note = ""
             if c["qtd_sabores"] < total_flavors:
-                note = f" (disponível para {c['qtd_sabores']} de {total_flavors} sabores)"
+                note = (
+                    f" (disponível para {c['qtd_sabores']} de {total_flavors} sabores)"
+                )
             lines.append(f"- {c['tamanho']} + {c['borda']}{note}")
         lines.append("")
 

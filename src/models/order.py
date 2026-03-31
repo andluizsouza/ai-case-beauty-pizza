@@ -67,9 +67,7 @@ class ItemCreate(BaseModel):
     name: str = Field(
         ..., max_length=255, description="Nome do item (até 255 caracteres)."
     )
-    quantity: int = Field(
-        ..., ge=0, description="Quantidade (inteiro positivo, >= 0)."
-    )
+    quantity: int = Field(..., ge=0, description="Quantidade (inteiro positivo, >= 0).")
     unit_price: Decimal = Field(
         ...,
         ge=0,
@@ -172,9 +170,7 @@ class UpdateAddressPayload(BaseModel):
 class OrderFilterParams(BaseModel):
     """Parâmetros de query para ``GET /api/orders/filter/``."""
 
-    client_document: str = Field(
-        ..., description="CPF do cliente (obrigatório)."
-    )
+    client_document: str = Field(..., description="CPF do cliente (obrigatório).")
     delivery_date: str | None = Field(
         default=None,
         description="Data de entrega (YYYY-MM-DD, opcional).",

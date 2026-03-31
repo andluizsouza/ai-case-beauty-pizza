@@ -273,4 +273,3 @@ class TestAgentSecurityInstructions:
         assert agent_a.session_id == "session-A"
         assert agent_b.session_id == "session-B"
         assert agent_a.session_id != agent_b.session_id
-
