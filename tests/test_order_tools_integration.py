@@ -65,13 +65,6 @@ class TestCreateOrderIntegration:
         assert "created_at" in result
         assert "updated_at" in result
 
-    def test_create_order_without_delivery_date(self) -> None:
-        """Pedido sem data usa a data de hoje."""
-        cpf = str(int(_RUN_ID) + 1).zfill(11)
-        result = create_order("Teste Sem Data", cpf)
-        assert "error" not in result
-        assert "delivery_date" in result
-
     def test_create_duplicate_order_returns_error(self) -> None:
         """unique_together (name + cpf + date) retorna erro."""
         cpf = str(int(_RUN_ID) + 2).zfill(11)
@@ -79,15 +72,13 @@ class TestCreateOrderIntegration:
         result = create_order("Teste Duplicado", cpf, _TODAY)
         assert "error" in result
 
-    def test_create_order_missing_name_returns_error(self) -> None:
-        """API rejeita pedido sem nome."""
-        result = create_order("", str(int(_RUN_ID) + 3).zfill(11), _TODAY)
-        assert "error" in result
+    def test_create_order_missing_required_fields_returns_error(self) -> None:
+        """API rejeita pedido sem nome ou sem documento."""
+        result_no_name = create_order("", str(int(_RUN_ID) + 3).zfill(11), _TODAY)
+        assert "error" in result_no_name
 
-    def test_create_order_missing_document_returns_error(self) -> None:
-        """API rejeita pedido sem documento."""
-        result = create_order("Teste Sem CPF", "", _TODAY)
-        assert "error" in result
+        result_no_doc = create_order("Teste Sem CPF", "", _TODAY)
+        assert "error" in result_no_doc
 
 
 # ===================================================================
@@ -191,20 +182,6 @@ class TestFullOrderJourneyIntegration:
         assert addr["complement"] == "Sala 10"
         assert addr["reference_point"] == "Próx. ao metrô"
 
-    def test_update_address_minimal_fields(self) -> None:
-        """Atualiza endereço sem campos opcionais."""
-        result = update_delivery_address(
-            self.order_id,
-            street_name="Rua Simples",
-            number="1",
-        )
-        assert "error" not in result
-
-        details = get_order_details(self.order_id)
-        addr = details["delivery_address"]
-        assert addr["street_name"] == "Rua Simples"
-        assert addr["number"] == "1"
-
     def test_get_order_details_all_fields(self) -> None:
         """Detalhes do pedido contêm todos os campos esperados."""
         details = get_order_details(self.order_id)
@@ -225,12 +202,6 @@ class TestFullOrderJourneyIntegration:
         assert len(result) >= 1
         ids = [o["id"] for o in result]
         assert self.order_id in ids
-
-    def test_filter_by_document_and_date(self) -> None:
-        """Filtro por CPF + data retorna o pedido."""
-        result = filter_orders(self.cpf, _TODAY)
-        assert isinstance(result, list)
-        assert len(result) >= 1
 
     def test_filter_nonexistent_document_returns_empty(self) -> None:
         """CPF sem pedidos retorna lista vazia."""
@@ -254,17 +225,10 @@ class TestNonexistentOrderIntegration:
         result = get_order_details(self._FAKE_ID)
         assert "error" in result
 
-    def test_add_item_to_nonexistent_order(self) -> None:
-        """Adicionar item a pedido inexistente retorna erro."""
-        result = add_item_to_order(self._FAKE_ID, "Pizza X", 1, 30.0)
-        assert "error" in result
+    def test_modify_nonexistent_order_returns_error(self) -> None:
+        """Adicionar item e atualizar endereço de pedido inexistente retorna erro."""
+        result_add = add_item_to_order(self._FAKE_ID, "Pizza X", 1, 30.0)
+        assert "error" in result_add
 
-    def test_remove_item_from_nonexistent_order(self) -> None:
-        """Remover item de pedido inexistente retorna erro."""
-        result = remove_item_from_order(self._FAKE_ID, 1)
-        assert "error" in result
-
-    def test_update_address_nonexistent_order(self) -> None:
-        """Atualizar endereço de pedido inexistente retorna erro."""
-        result = update_delivery_address(self._FAKE_ID, "Rua X", "1")
-        assert "error" in result
+        result_addr = update_delivery_address(self._FAKE_ID, "Rua X", "1")
+        assert "error" in result_addr

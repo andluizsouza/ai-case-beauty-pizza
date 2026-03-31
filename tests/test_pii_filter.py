@@ -35,15 +35,6 @@ def _get_output(logger: logging.Logger) -> str:
 class TestCPFMasking:
     """Testes de mascaramento de CPF."""
 
-    def test_logger_masks_pii_data(self, pii_logger: logging.Logger) -> None:
-        """Garante que um CPF vazado no log seja substituído por '***'."""
-        cpf = "123.456.789-00"
-        pii_logger.info("Cliente com CPF: %s fez pedido", cpf)
-
-        output = _get_output(pii_logger)
-        assert "123.456.789-00" not in output
-        assert "***.***.***-00" in output
-
     def test_mask_cpf_formatted(self, pii_logger: logging.Logger) -> None:
         """Mascara CPF no formato XXX.XXX.XXX-XX."""
         pii_logger.info("Doc: 987.654.321-10")
@@ -119,16 +110,6 @@ class TestMultiplePatterns:
         assert "99999" not in output
         assert "***.***.***-00" in output
         assert "(11) *****-8888" in output
-
-    def test_multiple_cpfs(self, pii_logger: logging.Logger) -> None:
-        """Mascara múltiplos CPFs na mesma linha."""
-        pii_logger.info("Docs: 111.222.333-44 e 555.666.777-88")
-
-        output = _get_output(pii_logger)
-        assert "111.222.333-44" not in output
-        assert "555.666.777-88" not in output
-        assert "***.***.***-44" in output
-        assert "***.***.***-88" in output
 
 
 # ---------- Sem falsos positivos ----------

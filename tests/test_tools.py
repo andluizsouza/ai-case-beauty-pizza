@@ -38,37 +38,28 @@ DB_PATH = str(Path(__file__).resolve().parent.parent / "database" / "knowledge_b
 # ===================================================================
 
 
-class TestGetReadonlyConnection:
+class TestSQLiteReadOnly:
     """Testes da conexão read-only ao banco do cardápio."""
 
-    def test_sqlite_readonly_blocks_writes(self) -> None:
-        """Verifica que a conexão read-only impede operações de escrita."""
+    def test_readonly_blocks_all_writes(self) -> None:
+        """Verifica que INSERT, UPDATE, DELETE, DROP, ALTER e CREATE são bloqueados."""
         conn = _get_readonly_connection(DB_PATH)
         try:
-            with pytest.raises(sqlite3.OperationalError):
-                conn.execute("INSERT INTO pizzas (sabor, descricao, ingredientes) VALUES ('X', 'Y', 'Z')")
+            write_statements = [
+                "INSERT INTO pizzas (sabor, descricao, ingredientes) VALUES ('X', 'Y', 'Z')",
+                "UPDATE pizzas SET sabor = 'Hackeada' WHERE id = 1",
+                "DELETE FROM pizzas WHERE id = 1",
+                "DROP TABLE pizzas",
+                "ALTER TABLE pizzas ADD COLUMN hacked TEXT",
+                "CREATE TABLE hack (id INTEGER PRIMARY KEY)",
+            ]
+            for stmt in write_statements:
+                with pytest.raises(sqlite3.OperationalError):
+                    conn.execute(stmt)
         finally:
             conn.close()
 
-    def test_sqlite_readonly_blocks_delete(self) -> None:
-        """Verifica que DELETE é bloqueado em modo read-only."""
-        conn = _get_readonly_connection(DB_PATH)
-        try:
-            with pytest.raises(sqlite3.OperationalError):
-                conn.execute("DELETE FROM pizzas WHERE id = 1")
-        finally:
-            conn.close()
-
-    def test_sqlite_readonly_blocks_drop(self) -> None:
-        """Verifica que DROP TABLE é bloqueado em modo read-only."""
-        conn = _get_readonly_connection(DB_PATH)
-        try:
-            with pytest.raises(sqlite3.OperationalError):
-                conn.execute("DROP TABLE pizzas")
-        finally:
-            conn.close()
-
-    def test_sqlite_readonly_allows_select(self) -> None:
+    def test_readonly_allows_select(self) -> None:
         """Verifica que SELECT funciona normalmente."""
         conn = _get_readonly_connection(DB_PATH)
         try:
@@ -116,6 +107,16 @@ class TestGetPizzaPrice:
         """Pizza doce só tem borda Tradicional; recheada retorna None."""
         result = get_pizza_price(
             "Doce de Leite com Coco", "Média", "Recheada com Cheddar", DB_PATH
+        )
+        assert result is None
+
+    def test_sql_injection_returns_none(self) -> None:
+        """Payload de SQL injection não quebra a query parametrizada."""
+        result = get_pizza_price(
+            sabor="' OR 1=1 --",
+            tamanho="Grande",
+            borda="Tradicional",
+            db_path=DB_PATH,
         )
         assert result is None
 

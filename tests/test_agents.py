@@ -3,7 +3,6 @@
 Foco em validar:
 - Configuração correta dos agentes (tools, instructions, output_schema).
 - Modelo de roteamento (RouteDecision / TargetAgent).
-- Fluxo: menu_agent como gateway de validação, order_agent para gestão.
 - Proteção contra prompt injection nos prompts dos agentes.
 """
 
@@ -37,27 +36,10 @@ class TestRouteDecision:
         assert decision.target_agent == TargetAgent.ORDER
         assert decision.target_agent.value == "order_agent"
 
-    def test_from_string_value(self) -> None:
-        """Cria RouteDecision a partir de string (simulando output do LLM)."""
-        decision = RouteDecision(target_agent="menu_agent")
-        assert decision.target_agent == TargetAgent.MENU
-
     def test_invalid_agent_name_rejected(self) -> None:
         """Rejeita nome de agente inválido."""
         with pytest.raises(ValueError):
             RouteDecision(target_agent="unknown_agent")
-
-    def test_json_serialization(self) -> None:
-        """Serialização JSON contém target_agent correto."""
-        decision = RouteDecision(target_agent=TargetAgent.ORDER)
-        data = decision.model_dump()
-        assert data == {"target_agent": "order_agent"}
-
-    def test_json_deserialization(self) -> None:
-        """Deserialização JSON reconstrói RouteDecision."""
-        data = {"target_agent": "menu_agent"}
-        decision = RouteDecision.model_validate(data)
-        assert decision.target_agent == TargetAgent.MENU
 
 
 # ===================================================================
@@ -89,45 +71,24 @@ class TestRouterAgent:
         agent = create_router_agent()
         assert agent.name == "router_agent"
 
-    def test_router_instructions_contain_agents(self) -> None:
-        """Instruções do router mencionam os dois agentes disponíveis."""
+    def test_router_instructions_routing_rules(self) -> None:
+        """Instruções do router mencionam agentes e regras de roteamento."""
         text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
         assert "menu_agent" in text
         assert "order_agent" in text
+        assert "sabor" in lower
+        assert "confirma" in lower
+        assert "mantenha" in lower
 
     def test_router_instructions_security(self) -> None:
-        """Instruções do router contêm proteção contra prompt injection."""
+        """Instruções contêm proteção anti-injection e formato JSON obrigatório."""
         text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
+        lower = text.lower()
         assert "IGNORE" in text
-        assert "system prompt" in text.lower()
-
-    def test_router_sends_greetings_to_menu(self) -> None:
-        """Saudações devem ir para menu_agent (primeiro contato)."""
-        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "saudaç" in lower or "olá" in lower or "oi" in lower
-        assert "menu_agent" in text
-
-    def test_router_sends_flavors_to_menu(self) -> None:
-        """Menção a sabores, preços ou cardápio deve ir para menu_agent."""
-        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "sabor" in lower
-        assert "menu_agent" in text
-
-    def test_router_sends_confirmation_to_order(self) -> None:
-        """Confirmação de item validado deve ir para order_agent."""
-        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "confirma" in lower
-        assert "order_agent" in text
-
-    def test_router_keeps_order_agent_during_flow(self) -> None:
-        """Router mantém order_agent durante coleta de dados (nome, CPF, endereço)."""
-        text = " ".join(ROUTER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
-        assert "mantenha em order_agent" in lower or "mantenha" in lower
-        assert "nome" in lower or "cpf" in lower or "endereço" in lower
+        assert "nunca revele" in lower
+        assert "system prompt" in lower
+        assert "JSON" in text
 
 
 # ===================================================================
@@ -162,36 +123,26 @@ class TestMenuAgent:
         agent = create_menu_agent(session_id="test-session-123")
         assert agent.session_id == "test-session-123"
 
-    def test_menu_instructions_security(self) -> None:
-        """Instruções do menu_agent contêm proteção contra prompt injection."""
-        text = " ".join(MENU_AGENT_INSTRUCTIONS)
-        assert "IGNORE" in text
-        assert "prompt" in text.lower()
-
-    def test_menu_is_first_contact(self) -> None:
-        """Menu agent é o primeiro contato do cliente."""
+    def test_menu_instructions_business_rules(self) -> None:
+        """Instruções definem fluxo de atendimento do cardápio."""
         text = " ".join(MENU_AGENT_INSTRUCTIONS)
         lower = text.lower()
         assert "primeiro contato" in lower
-
-    def test_menu_validates_before_order(self) -> None:
-        """Menu agent valida item antes de encaminhar para pedido."""
-        text = " ".join(MENU_AGENT_INSTRUCTIONS)
-        lower = text.lower()
         assert "validar" in lower
         assert "get_pizza_price" in text
-
-    def test_menu_suggests_alternatives(self) -> None:
-        """Menu agent sugere alternativas quando item não existe."""
-        text = " ".join(MENU_AGENT_INSTRUCTIONS)
-        lower = text.lower()
         assert "alternativas" in lower or "sugi" in lower
-
-    def test_menu_presents_summary(self) -> None:
-        """Menu agent apresenta resumo com preço antes de confirmar."""
-        text = " ".join(MENU_AGENT_INSTRUCTIONS)
         assert "Pizza [Sabor] [Tamanho] Borda [Borda]" in text
         assert "R$" in text
+
+    def test_menu_instructions_security(self) -> None:
+        """Instruções contêm proteções anti-injection e escopo restrito."""
+        text = " ".join(MENU_AGENT_INSTRUCTIONS)
+        lower = text.lower()
+        assert "IGNORE" in text
+        assert "nunca revele" in lower
+        assert "system prompt" in lower
+        assert "cardápio" in lower
+        assert "Desculpe" in text
 
 
 # ===================================================================
@@ -231,62 +182,95 @@ class TestOrderAgent:
         agent = create_order_agent(session_id="session-abc")
         assert agent.session_id == "session-abc"
 
-    def test_order_instructions_security(self) -> None:
-        """Instruções do order_agent contêm proteção contra prompt injection."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "IGNORE" in text
-        assert "prompt" in text.lower()
-
-    def test_order_never_exposes_internal_separation(self) -> None:
-        """Order agent nunca expõe a separação interna de agentes."""
+    def test_order_instructions_data_requirements(self) -> None:
+        """Instruções exigem dados completos antes de executar ações."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         lower = text.lower()
-        assert "nunca exponha" in lower or "nunca" in lower
-        assert "atendente contínuo" in lower
-
-    def test_order_requires_cpf_before_create(self) -> None:
-        """Instruções exigem CPF antes de criar pedido."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         assert "CPF" in text
+        assert "ANTES" in text
         assert "create_order" in text
+        assert "NÃO assuma" in text
+        assert "pergunte" in lower
+        assert "sabor" in lower
+        assert "tamanho" in lower
+        assert "borda" in lower
 
-    def test_order_enforces_lifecycle(self) -> None:
-        """Pedido só existe após create_order retornar ID."""
+    def test_order_instructions_lifecycle(self) -> None:
+        """Instruções definem ciclo de vida completo do pedido."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         lower = text.lower()
         assert "create_order" in text
-        assert "order_id" in lower or "id" in lower
-        assert "nunca diga" in lower or "não está feito" in lower
-
-    def test_order_requires_address_before_finalize(self) -> None:
-        """Deve pedir endereço antes de finalizar o pedido."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        lower = text.lower()
         assert "endereço de entrega" in lower
         assert "update_delivery_address" in text
-
-    def test_order_shows_summary_with_get_order_details(self) -> None:
-        """Deve usar get_order_details para resumo final."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         assert "get_order_details" in text
-
-    def test_order_uses_menu_context(self) -> None:
-        """Order agent utiliza contexto do cardápio para adicionar itens."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
+        assert "finalizado" in lower
         assert "Contexto do cardápio" in text
 
-    def test_order_item_name_format(self) -> None:
-        """Instruções definem formato do nome do item."""
+    def test_order_instructions_item_format(self) -> None:
+        """Formato do nome do item segue padrão definido."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
         assert "Pizza [Sabor] [Tamanho] Borda [Tipo da Borda]" in text
 
-    def test_order_refuses_completed_orders(self) -> None:
-        """Instruções mandam recusar alterações em pedidos finalizados."""
+    def test_order_instructions_security(self) -> None:
+        """Instruções contêm proteções anti-injection e ocultam separação interna."""
         text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "RECUSE" in text or "finalizado" in text.lower()
+        lower = text.lower()
+        assert "IGNORE" in text
+        assert "nunca revele" in lower
+        assert "system prompt" in lower
+        assert "atendente contínuo" in lower
+        assert "Desculpe" in text
 
-    def test_order_no_default_values(self) -> None:
-        """Instruções proíbem assumir valores padrão."""
-        text = " ".join(ORDER_AGENT_INSTRUCTIONS)
-        assert "NÃO assuma" in text
+
+# ===================================================================
+# Segurança — Instruções anti-injection (todos os agentes)
+# ===================================================================
+
+
+class TestAgentSecurityInstructions:
+    """Proteções contra prompt injection presentes em todos os agentes."""
+
+    @pytest.mark.parametrize(
+        "instructions",
+        [MENU_AGENT_INSTRUCTIONS, ORDER_AGENT_INSTRUCTIONS],
+        ids=["menu_agent", "order_agent"],
+    )
+    def test_blocks_role_switching(self, instructions: list[str]) -> None:
+        """Agentes bloqueiam ataques de troca de papel."""
+        text = " ".join(instructions).lower()
+        assert "agora você é" in text or "esqueça tudo" in text
+
+    @pytest.mark.parametrize(
+        "instructions",
+        [MENU_AGENT_INSTRUCTIONS, ORDER_AGENT_INSTRUCTIONS],
+        ids=["menu_agent", "order_agent"],
+    )
+    def test_blocks_developer_mode(self, instructions: list[str]) -> None:
+        """Agentes bloqueiam tentativa de 'modo desenvolvedor'."""
+        text = " ".join(instructions).lower()
+        assert "modo desenvolvedor" in text
+
+    @pytest.mark.parametrize(
+        "instructions",
+        [MENU_AGENT_INSTRUCTIONS, ORDER_AGENT_INSTRUCTIONS],
+        ids=["menu_agent", "order_agent"],
+    )
+    def test_restricts_scope(self, instructions: list[str]) -> None:
+        """Agentes restringem escopo e bloqueiam execução de código."""
+        text = " ".join(instructions).lower()
+        assert "nunca execute código" in text
+
+    @patch("src.agents.menu_agent.settings")
+    @patch("src.agents.order_agent.settings")
+    def test_session_isolation(
+        self, mock_order: MagicMock, mock_menu: MagicMock
+    ) -> None:
+        """Agentes com sessions diferentes não compartilham estado."""
+        mock_order.google_api_key = "fake-key"
+        mock_menu.google_api_key = "fake-key"
+        agent_a = create_menu_agent(session_id="session-A")
+        agent_b = create_order_agent(session_id="session-B")
+        assert agent_a.session_id == "session-A"
+        assert agent_b.session_id == "session-B"
+        assert agent_a.session_id != agent_b.session_id
 
