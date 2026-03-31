@@ -52,6 +52,7 @@ flowchart LR
 
 - Python 3.13
 - Chave de API do Google Gemini
+    - Caso você não tenha a chave, acesse: [Using Gemini API keys](https://ai.google.dev/gemini-api/docs/api-key)
 - API de pedidos e banco de dados rodando localmente (ver [docs/SETUP_API_DB.md](docs/SETUP_API_DB.md))
 
 ### 1. Clonar e instalar
