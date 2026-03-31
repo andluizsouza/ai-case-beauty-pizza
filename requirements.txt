@@ -1,24 +1,24 @@
 # Framework de agentes
-agno[google]
+agno[google]==2.5.11
 
 # LLM e Embeddings (Gemini)
-google-genai
+google-genai==1.69.0
 
 # HTTP client (async) para API de pedidos
-httpx
+httpx==0.28.1
 
 # Validação de dados
-pydantic>=2.0
+pydantic==2.12.5
 
 # ORM / DB (dependência do agno.db.sqlite)
-sqlalchemy
+sqlalchemy==2.0.48
 
 # Variáveis de ambiente
-python-dotenv
+python-dotenv==1.2.2
 
 # Testes
-pytest
-pytest-asyncio
+pytest==9.0.2
+pytest-asyncio==1.3.0
 
 # Linting e formatting
-ruff
+ruff==0.15.8

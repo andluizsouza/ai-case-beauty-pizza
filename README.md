@@ -50,21 +50,22 @@ flowchart LR
 
 ### Pré-requisitos
 
-- Python 3.13+
+- Python 3.13
 - Chave de API do Google Gemini
 - API de pedidos e banco de dados rodando localmente (ver [docs/SETUP_API_DB.md](docs/SETUP_API_DB.md))
 
 ### 1. Clonar e instalar
 
 ```bash
-git clone <repo-url>
+git clone <repo-url> Case-Beauty-Pizza
 cd Case-Beauty-Pizza
 ```
 ```bash
 python3.13 -m venv venv
-source venv/bin/activate   # Linux/Mac
+source venv/bin/activate
 ```
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
